@@ -74,10 +74,11 @@ def search(search_query: str = "sonya7rv", limit: int = 10):
 
     submissions = list(user_reddit.subreddit('all').search(search_query, limit=limit))
     # save the data
-    save_reddit_data(submissions)
+    save_reddit_data(submissions, search_query)
     results = []
     for submission in user_reddit.subreddit('all').search(search_query, limit=limit):
         submmision_data = {
+            'search_query': search_query,
             'id': submission.id,
             'title': submission.title,
             'score': submission.score,
