@@ -9,7 +9,19 @@ MODEL = genai.GenerativeModel('gemini-1.5-flash')
 
 def process_text_for_product_review(data):
     
-    prompt = f"Determine if the following text is a product review. Respond with 'True' if it is a product review, otherwise respond with 'False'. Text: {text}"
+    prompt = (
+        "Analyze the following text and determine if it is a product review. "
+        "Consider the following criteria when making your decision:\n\n"
+        "1. Does the text describe a specific product, including details like the model, make, version, or type?\n"
+        "2. Does the text evaluate the product's performance, functionality, or features?\n"
+        "3. Does the text discuss the user experience, such as ease of use, comfort, or the user interface?\n"
+        "4. Is there any mention of the product's quality, durability, or maintenance requirements?\n"
+        "5. Does the text analyze the value for money, considering the price versus features?\n"
+        "6. Are there any pros and cons listed, highlighting what the user liked or disliked about the product?\n"
+        "7. Does the text conclude with an overall impression, recommendation, or rating of the product?\n\n"
+        "Respond with 'True' if the text meets several of these criteria and can be considered a product review, otherwise respond with 'False'.\n\n"
+        f"Text: {data}"
+    )
     
     # Send the prompt to the Gemini API
     response = MODEL.generate_content(
@@ -20,9 +32,9 @@ def process_text_for_product_review(data):
     determination = response.text.strip()
     
     if determination.lower() == 'true':
-        return text
-    else:
-        return "this is not a product review"
+        return True
+    
+    return False
 
 # Example usage
 text = "this is a boy"

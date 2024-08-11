@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import os
+from  filter_data import process_text_for_product_review
 
 def save_reddit_data(submissions, filename='reddit_data.json'):
     data_dir = Path('data')
@@ -30,7 +31,8 @@ def create_submission_data(submission):
         'url': submission.url,
         'num_comments': submission.num_comments,
         'created': submission.created,
-        'body': submission.selftext
+        'body': submission.selftext,
+        "is_product_review": process_text_for_product_review(submission.selftext)
     }
 
 def save_updated_data(file_path, data):
