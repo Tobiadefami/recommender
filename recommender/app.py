@@ -6,7 +6,9 @@ import secrets
 import uvicorn
 import logging
 from datetime import datetime
-from save_data import save_reddit_data
+from recommender.save_data import save_reddit_data
+from praw.models import MoreComments
+
 
 CLIENT_ID = os.environ.get('REDDIT_APP_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('REDDIT_APP_CLIENT_SECRET')
@@ -55,9 +57,7 @@ def authorize_callback(request: Request):
 # as the data gets built up from the model reviews, we can train an inexpensive model based on the data (TF-IDF)
 
 @app.get('/search/{search_query}')
-def search(search_query: str = "sonya7rv", limit: int = 10):
-    if 'refresh_token' not in session_data:
-        return {"error": "User not authenticated."}
+def search(search_query: str, limit: int = 10):
 
     # Setup the Reddit instance using the refresh token
     if 'refresh_token' not in session_data:
@@ -79,13 +79,14 @@ def search(search_query: str = "sonya7rv", limit: int = 10):
     for submission in user_reddit.subreddit('all').search(search_query, limit=limit):
         submmision_data = {
             'search_query': search_query,
+            'user': submission.author.name,
             'id': submission.id,
             'title': submission.title,
             'score': submission.score,
             'url': submission.url,
             'num_comments': submission.num_comments,
             'created': submission.created,
-            'body': submission.selftext
+            'body': submission.selftext,
         }
         results.append(submmision_data)
         logging.info([type(x) for x in submmision_data.values()])
@@ -94,4 +95,4 @@ def search(search_query: str = "sonya7rv", limit: int = 10):
     return results
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run("recommender.app:app", host='0.0.0.0', port=8000, reload=True)
