@@ -21,9 +21,8 @@ class ProductReviewAnalysis(BaseModel):
     is_product_of_interest: bool = Field(
         description="Whether the review is a review of the product of interest"
     )
+    post_id: Optional[str] = Field("the unique identifier of the post or comment")
 
-
-class ProductReviewScore(BaseModel):
     detail_score: int = Field(
         description=(
             "The detail score of the review from 0-10 (0 means the review is poorly"
@@ -44,12 +43,10 @@ class ProductReviewScore(BaseModel):
     )
 
 
+
 class AllReviewAnalysis(BaseModel):
     reviews: List[ProductReviewAnalysis] = Field(
         description="A list of product review analysis for all reviews. If no reviews are present an empty list is returned"
-    )
-    scores: List[ProductReviewScore] = Field(
-        description="A list of scores for each review,"
     )
     overall_decision: Optional[str] = Field(
         description="The overall decision on whether the product is a worthy purchase based on the processed reviews"
@@ -65,6 +62,7 @@ def process_post_for_product_review(
     prompt = f"""
     Analyze the following post and extract product reviews from it if and only if it is a product review. Indicate whether each extracted product review is a review of the product of interest: {search_query}
     post; {post['body']}
+    post_id: {post['id']}
     comments: {post['comments']}
 
     Then provide an overall decision on whether the {search_query} is a good product to buy based on the reviews extracted.
@@ -75,16 +73,22 @@ def process_post_for_product_review(
 
 
 def process_all_posts(
-    data: List[dict], search_query: str, score_threshold: int = 8
+    data: dict, search_query: str, score_threshold: int = 8
 ) -> AllReviewAnalysis:
     combined_reviews = []
     combined_scores = []
     overall_decisions = []
 
-    for post in data:
+    if search_query not in data:
+        return AllReviewAnalysis(
+            reviews = [],
+            overall_decisions=None
+        )
+    for post in data[search_query]:
+        print(f"processing search query: {search_query}")
         analysis = process_post_for_product_review(post, search_query)
+
         combined_reviews.extend(analysis.reviews)
-        combined_scores.extend(analysis.scores)
         if analysis.overall_decision:
             overall_decisions.append(analysis.overall_decision)
 
@@ -97,7 +101,6 @@ def process_all_posts(
 
     return AllReviewAnalysis(
         reviews=combined_reviews,
-        scores=combined_scores,
         overall_decision=final_decision,
     )
 
@@ -108,7 +111,7 @@ if __name__ == "__main__":
     #     search_query="iphone 15",
     # )
 
-    with open("data/processed_data2.json", "r") as file:
+    with open("data/reddit_data.json", "r") as file:
         data = json.load(file)
         processed_post = process_all_posts(data, "pixel 9 pro xl")
         print(processed_post)

@@ -1,8 +1,11 @@
 import json
 from pathlib import Path
 import os
-from  recommender.structured_data import process_text_for_product_review
+from  recommender.structured_data import process_post_for_product_review
 from praw.models import Comment
+from recommender.process_comments import process_comments
+from recommender.process_submissions import process_submission, process_submissions
+
 
 def save_reddit_data(submissions, search_query, filename='reddit_data.json'):
     data_dir = Path('data')
@@ -22,53 +25,26 @@ def load_existing_data(file_path):
             return {}
     return {}
 
-def add_new_submissions(existing_data, search_query, submissions, top_k=20):
-
+def add_new_submissions(existing_data, search_query, submissions, score_threshold=10, min_length=50, recent_days=None):
     if search_query not in existing_data:
         existing_data[search_query] = []
 
-    non_empty_submissions = []
-    sorted_submission = sorted(submissions, key=lambda x: len(x.selftext), reverse=True)
-    for submission in sorted_submission:
-        if submission.selftext.strip():
-            submission_data = create_submission_data(submission, search_query)
-            non_empty_submissions.append(submission_data)
-    existing_data[search_query].extend(non_empty_submissions)
+    processed_submissions = process_submissions(submissions, score_threshold, min_length, recent_days)
+
+    for submission in processed_submissions:
+        submission_data = process_submission(
+            submission,
+            search_query,
+            score_threshold=score_threshold,
+            min_length=min_length,
+            recent_days=recent_days
+        )
+        if submission_data:
+            existing_data[search_query].append(submission_data)
+
     return existing_data
 
-def create_submission_data(submission, search_query, depth:int=0, max_depth:int=3):
-    # analysis = process_text_for_product_review(submission.selftext)
-    # print(f"{analysis=}")
-    def get_comments(comment_forest, depth, max_depth):
-        if depth >=max_depth:
-            return []
 
-        comments = []
-
-        for comment in comment_forest:
-            if isinstance(comment, Comment):
-                comments.append({'author': comment.author.name if comment.author else '[deleted]',
-                'body': comment.body,
-                'score': comment.score,
-                'created': comment.created,
-                'replies': sorted(get_comments(comment.replies, depth+1, max_depth) , key=lambda x: x['score'], reverse=True)
-                })
-        return comments
-
-    comments = get_comments(submission.comments, depth, max_depth)
-    sorted_comments = sorted(comments, key=lambda x: x['score'], reverse=True)
-
-    return {
-        'user': submission.author.name if submission.author else '[deleted]',
-        'id': submission.id,
-        'title': submission.title,
-        'score': submission.score,
-        'url': submission.url,
-        'num_comments': submission.num_comments,
-        'created': submission.created,
-        'body': submission.selftext,
-        'comments':sorted_comments
-        }
 
 def save_updated_data(file_path, data):
     # TODO: switch this to use the models defined in models.py and store as part of the DB
