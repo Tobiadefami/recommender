@@ -49,7 +49,8 @@ class AllReviewAnalysis(BaseModel):
         description="A list of product review analysis for all reviews. If no reviews are present an empty list is returned"
     )
     overall_decision: Optional[str] = Field(
-        description="The overall decision on whether the product is a worthy purchase based on the processed reviews"
+        description="Use the data obtained from the product review analysis to provide a well detailed and an unbiased decision on whether the product is good to buy or not."
+        " Highlight the top pros and cons from posts, comments and replies that have the best review scores."
     )
 
 
