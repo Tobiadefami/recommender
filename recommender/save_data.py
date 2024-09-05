@@ -1,52 +1,70 @@
+import logging
 import json
+from datetime import datetime
 from pathlib import Path
 import os
 from  recommender.structured_data import process_post_for_product_review
 from praw.models import Comment
 from recommender.process_comments import process_comments
 from recommender.process_submissions import process_submission, process_submissions
+from recommender.models import RedditPost, Base
+from recommender.database import get_db, engine
+from sqlalchemy import func
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-def save_reddit_data(submissions, search_query, filename='reddit_data.json'):
-    data_dir = Path('data')
-    data_dir.mkdir(exist_ok=True)
-    file_path = data_dir / filename
-    existing_data = load_existing_data(file_path)
-    updated_data = add_new_submissions(existing_data, search_query, submissions)
-    save_updated_data(file_path, updated_data)
+Base.metadata.create_all(bind=engine)
 
-def load_existing_data(file_path):
-    if file_path.exists():
-        try:
-            with open(file_path, 'r') as file:
-                return json.load(file)
-        except json.JSONDecodeError:
-            print(f"Error loading {file_path}")
-            return {}
-    return {}
+def save_reddit_data(submissions, search_query):
+    db = next(get_db())
+    # get the lastest submission data for this search query
+    latest_submission = db.query(func.max(RedditPost.created_at)).filter(RedditPost.search_query == search_query).scalar()
+    try:
+        processed_submissions = process_submissions(submissions)
+        logger.info(f"processed {len(processed_submissions)} submissions")
+        new_submissions_count = 0
+        for submission in processed_submissions:
+            processed_data = process_submission(submission, search_query)
+            created_at = datetime.utcfromtimestamp(processed_data['created'])
 
-def add_new_submissions(existing_data, search_query, submissions, score_threshold=10, min_length=50, recent_days=None):
-    if search_query not in existing_data:
-        existing_data[search_query] = []
+            if latest_submission is None or created_at >= latest_submission:
 
-    processed_submissions = process_submissions(submissions, score_threshold, min_length, recent_days)
+                post = RedditPost(
+                    id=processed_data['id'],
+                    search_query=search_query,
+                    created_at = created_at,
+                    data=processed_data
+                )
+                logger.info(f"Attempting to save post ID: {post.id}")
+                db.merge(post)  # This will insert or update
+                logger.info(f"Post with ID {post.id} merged")
+                new_submissions_count += 1
 
-    for submission in processed_submissions:
-        submission_data = process_submission(
-            submission,
-            search_query,
-            score_threshold=score_threshold,
-            min_length=min_length,
-            recent_days=recent_days
-        )
-        if submission_data:
-            existing_data[search_query].append(submission_data)
+        logger.info("Committing changes to database")
+        db.commit()
+        logger.info(f"Successfully saved {new_submissions_count} new posts for query: {search_query}")
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error saving data: {e}",
+            exc_info=True)
+    finally:
+        db.close()
 
-    return existing_data
+def load_existing_data(search_query):
+    db = next(get_db())
+    try:
+        posts = db.query(RedditPost).filter(RedditPost.search_query == search_query).all()
+        return {search_query: [post.data for post in posts]}
+    finally:
+        db.close()
 
+# The following functions are no longer needed with the database approach:
+# - load_existing_data (from file)
+# - add_new_submissions
+# - save_updated_data (to file)
 
-
-def save_updated_data(file_path, data):
-    # TODO: switch this to use the models defined in models.py and store as part of the DB
-    with open(file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+# You might want to keep a function to retrieve data from the database:
+def get_reddit_data(search_query):
+    return load_existing_data(search_query)
