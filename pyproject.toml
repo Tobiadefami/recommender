@@ -11,8 +11,11 @@ praw = "^7.7.1"
 aiohttp = "^3.10.0"
 asyncio = "^3.4.3"
 fastapi = "^0.111.1"
-sqlalchemy = "^2.0.31"
-
+langchain-core = "^0.2.38"
+langchain-openai = "^0.1.23"
+langchain = "^0.2.16"
+sqlalchemy = { extras = ["postgresql"], version = "^1.4.0" }
+psycopg2-binary = "^2.9.1"
 
 [build-system]
 requires = ["poetry-core"]
