@@ -64,7 +64,3 @@ def load_existing_data(search_query):
 # - load_existing_data (from file)
 # - add_new_submissions
 # - save_updated_data (to file)
-
-# You might want to keep a function to retrieve data from the database:
-def get_reddit_data(search_query):
-    return load_existing_data(search_query)

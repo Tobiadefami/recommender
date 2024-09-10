@@ -8,7 +8,8 @@ import logging
 from datetime import datetime
 from recommender.save_data import save_reddit_data
 from praw.models import MoreComments
-
+from recommender.save_data import load_existing_data, get_reddit_data
+from recommender.structured_data import process_all_posts
 
 CLIENT_ID = os.environ.get('REDDIT_APP_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('REDDIT_APP_CLIENT_SECRET')
@@ -58,10 +59,10 @@ def authorize_callback(request: Request):
 
 @app.get('/search/{search_query}')
 def search(search_query: str, limit: int = 10):
-
     # Setup the Reddit instance using the refresh token
     if 'refresh_token' not in session_data:
         return {"error": "User not authenticated."}
+
 
     # Create a new Reddit instance for the user context
     user_reddit = praw.Reddit(
@@ -71,28 +72,19 @@ def search(search_query: str, limit: int = 10):
         refresh_token=session_data['refresh_token']
     )
     user_reddit.read_only = False
-
-    submissions = list(user_reddit.subreddit('all').search(search_query, limit=limit))
-    # save the data
-    save_reddit_data(submissions, search_query)
+    existing_data = get_reddit_data(search_query)
+    print(f'existing data: {existing_data}')
     results = []
-    for submission in user_reddit.subreddit('all').search(search_query, limit=limit):
-        submmision_data = {
-            'search_query': search_query,
-            'user': submission.author.name,
-            'id': submission.id,
-            'title': submission.title,
-            'score': submission.score,
-            'url': submission.url,
-            'num_comments': submission.num_comments,
-            'created': submission.created,
-            'body': submission.selftext,
-        }
-        results.append(submmision_data)
-        logging.info([type(x) for x in submmision_data.values()])
+    if existing_data[search_query]:
+        print(f'fetching data from existing data for {search_query}')
+        return process_all_posts(existing_data, search_query)
+    else:
+        submissions = list(user_reddit.subreddit('all').search(search_query, limit=limit))
+        # save the data
+        save_reddit_data(submissions, search_query)
+        new_data = load_existing_data(search_query)
+        return process_all_posts(new_data, search_query)
 
-
-    return results
 
 if __name__ == '__main__':
     uvicorn.run("recommender.app:app", host='0.0.0.0', port=8000, reload=True)
