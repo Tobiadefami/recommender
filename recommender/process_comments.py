@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from praw.models import Comment
+from asyncpraw.models import Comment
 
 
-def process_comments(
+async def process_comments(
     comment_forest,
     depth=0,
     max_depth=3,
@@ -17,7 +17,7 @@ def process_comments(
     processed_comments = []
     current_time = datetime.now()
 
-    for comment in comment_forest:
+    async for comment in comment_forest:
         if isinstance(comment, Comment):
             comment_data = {
                 "author": comment.author.name
@@ -43,7 +43,7 @@ def process_comments(
                     <= recent_days
                 )
             ):
-                comment_data["replies"] = process_comments(
+                comment_data["replies"] = await process_comments(
                     comment.replies,
                     depth + 1,
                     max_depth,

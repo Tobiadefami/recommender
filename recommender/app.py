@@ -1,6 +1,7 @@
 import logging
 import os
 import secrets
+import json
 
 import asyncpraw
 import uvicorn
@@ -11,6 +12,7 @@ from recommender.process_submissions import (
     process_submission,
     process_submissions,
 )
+from recommender.fetch_youtube_data import search_youtube_videos
 
 CLIENT_ID = os.environ.get("REDDIT_APP_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("REDDIT_APP_CLIENT_SECRET")
@@ -21,6 +23,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 STATE = secrets.token_urlsafe(16)
+REFRESH_TOKEN_FILE = "refresh_token.json"
 
 app = FastAPI()
 
@@ -35,8 +38,17 @@ async def get_reddit():
     return reddit
 
 
-# storage for session data
-session_data = {}
+def save_refresh_token(token):
+    with open(REFRESH_TOKEN_FILE, "w") as f:
+        json.dump({"refresh_token": token}, f)
+
+
+def load_refresh_token():
+    if os.path.exists(REFRESH_TOKEN_FILE):
+        with open(REFRESH_TOKEN_FILE, "r") as f:
+            data = json.load(f)
+            return data.get("refresh_token")
+    return None
 
 
 @app.get("/")
@@ -61,63 +73,42 @@ async def authorize_callback(request: Request):
 
     reddit = await get_reddit()
     refresh_token = await reddit.auth.authorize(code)
-    session_data["refresh_token"] = refresh_token
+    save_refresh_token(refresh_token)
     print("user authenticated!")
     return RedirectResponse(url="/search")
 
 
-# TODO: check if the body of the submission is a product review, and if it is, search through the comments"
-# determing if the text is a product review based one by passing it through a model (gemini flash or gpt-4o-mini)
-# as the data gets built up from the model reviews, we can train an inexpensive model based on the data (TF-IDF)
-
-
 @app.get("/search/{search_query}")
 async def search(search_query: str, limit: int = 10):
-    # Setup the Reddit instance using the refresh token
-    if "refresh_token" not in session_data:
+    refresh_token = load_refresh_token()
+    if not refresh_token:
         return {"error": "User not authenticated."}
 
-    # youtube_data_futures = search_youtube_videos(search_query)
+    youtube_data_futures = search_youtube_videos(search_query, max_results=limit)
 
-    # Create a new Reddit instance for the user context
     user_reddit = asyncpraw.Reddit(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
         user_agent=USER_AGENT,
-        refresh_token=session_data["refresh_token"],
+        refresh_token=refresh_token,
     )
     user_reddit.read_only = False
     subreddit = await user_reddit.subreddit("all")
-    reddit_search_results = subreddit.search(search_query, limit=limit)
+    reddit_search_results = []
 
-    print(f"{reddit_search_results=}")
-    reddit_data = []
-    async for submission in reddit_search_results:
-        reddit_data.append(
-            {
-                "id": submission.id,
-                "title": submission.title,
-                "selftext": submission.selftext,
-                "score": submission.score,
-                "url": submission.url,
-                "created_utc": submission.created_utc,
-                "num_comments": submission.num_comments,
-                "author": submission.author.name if submission.author else None,
-            }
-        )
-    process_whole_reddit_data = process_submissions(reddit_data)
+    async for submission in subreddit.search(search_query, limit=limit):
+        reddit_search_results.append(submission)
+
+    process_whole_reddit_data = await process_submissions(reddit_search_results)
     processed_reddit_submissions = [
-        process_submission(data, search_query=search_query)
-        for data in process_whole_reddit_data
+        await process_submission(data) for data in process_whole_reddit_data
     ]
 
-    # youtube_data = await youtube_data_futures
-
+    youtube_data = await youtube_data_futures
     all_submissions = {
-        "reddit": processed_reddit_submissions,
-        # "youtube": youtube_data,
+        "reddit": {search_query: processed_reddit_submissions},
+        "youtube": youtube_data,
     }
-    # return process_all_posts(all_submissions, search_query)
     return all_submissions
 
 
