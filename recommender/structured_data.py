@@ -1,24 +1,24 @@
 import json
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 
-from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 from rich import print
 
 
 class ProductReviewAnalysis(BaseModel):
+    source: str = Field(
+        description="The source of the review (reddit or youtube)"
+    )
     product_name: Optional[str] = Field(
         description="The name of the product being reviewed, if applicable"
     )
     review_summary: Optional[str] = Field(
         description="A brief summary of the review, if it is a product review"
     )
-    pros: Optional[List[str]] = Field(
-        "list the various pros of the product"
-    )
-    cons: Optional[List[str]] = Field(
-        "list the various cons of the product"
-    )
+    pros: Optional[List[str]] = Field("list the various pros of the product")
+    cons: Optional[List[str]] = Field("list the various cons of the product")
     sentiment: Optional[str] = Field(
         description="The sentiment of the review (positive, negative, neutral), if it is a product review"
     )
@@ -26,7 +26,7 @@ class ProductReviewAnalysis(BaseModel):
         description="Whether the review is a review of the product of interest"
     )
     post_id: Optional[str] = Field(
-        "the unique identifier of the post or comment"
+        "the unique identifier of the post or comment from reddit or youtube"
     )
 
     detail_score: int = Field(
@@ -60,27 +60,22 @@ class AllReviewAnalysis(BaseModel):
 
 
 def process_post_for_product_review(
-    post: Dict[str, Any],
-    search_query: str,
+    data: Dict[str, Any], search_query: str, source: str
 ) -> AllReviewAnalysis:
     llm = ChatOpenAI(
         model="gpt-4o",
         temperature=0.1,
     )
-    structured_llm = llm.with_structured_output(
-        AllReviewAnalysis
-    )
-    reddit = {}
-    youtube = {}
-    for result in post:
-        reddit["post"] = post["reddit"]
-        youtube["post"] = post["youtube"]
+    structured_llm = llm.with_structured_output(AllReviewAnalysis)
 
     prompt = f"""
-    Analyze the following post and extract product reviews from it if and only if it is a product review. Indicate whether each extracted product review is a review of the product of interest: {search_query}
-    post: {post['body']}
-    post_id: {post['id']}
-    comments: {post['comments'] if }
+    Analyze the each of the following {source} post and extract unique product reviews from it if and only if it is a product review.
+    Indicate whether each extracted product review is a review of the product of interest: {search_query}
+
+    post_id: {data['id']}
+    post: {data['body']}
+    comments: {data.get('comments', [])}
+    source: {source}
 
     Then provide an overall decision on whether the {search_query} is a good product to buy based on the reviews extracted.
     """
@@ -89,9 +84,28 @@ def process_post_for_product_review(
     return result
 
 
-def process_all_posts(
-    data: dict,
+def batch_process_posts_for_product_review(
+    data_batch: List[Dict[str, Any]],
     search_query: str,
+    source: str,
+    num_threads: int,
+) -> AllReviewAnalysis:
+    results = []
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [
+            executor.submit(
+                process_post_for_product_review, data, search_query, source
+            )
+            for data in data_batch
+        ]
+        for future in futures:
+            result = future.result()
+            results.append(result)
+    return results
+
+
+def process_all_posts(
+    data: dict, search_query: str, batch_size: int
 ) -> AllReviewAnalysis:
     combined_reviews = []
     overall_decisions = []
@@ -99,21 +113,27 @@ def process_all_posts(
     if search_query not in data:
         return AllReviewAnalysis(
             reviews=[],
-            overall_decisions=None,
+            overall_decision=None,
         )
 
-    for post in data[search_query]:
-        print(f"processing search query: {search_query}")
-        analysis = process_post_for_product_review(
-            post,
-            search_query,
-        )
+    for source in ["reddit", "youtube"]:
+        post = data[search_query][0][source]
+        batches = [
+            post[i : i + batch_size] for i in range(0, len(post), batch_size)
+        ]
 
-        combined_reviews.extend(analysis.reviews)
-        if analysis.overall_decision:
-            overall_decisions.append(
-                analysis.overall_decision
+        print(
+            f"batch processing search query: {search_query} for source: {source}"
+        )
+        for batch in batches:
+            result = batch_process_posts_for_product_review(
+                batch, search_query, source, num_threads=12
             )
+
+            for analysis in result:
+                combined_reviews.extend(analysis.reviews)
+                if analysis.overall_decision:
+                    overall_decisions.append(analysis.overall_decision)
 
     final_decision = None
     if overall_decisions:
@@ -131,12 +151,13 @@ def process_all_posts(
 
 if __name__ == "__main__":
     with open(
-        "data/reddit_data.json",
+        "data/iphone 16.json",
         "r",
     ) as file:
         data = json.load(file)
         processed_post = process_all_posts(
             data,
-            "pixel 9 pro xl",
+            "iphone 16",
+            batch_size=20,
         )
         print(processed_post)

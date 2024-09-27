@@ -1,18 +1,18 @@
+import json
 import logging
 import os
 import secrets
-import json
 
 import asyncpraw
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 
+from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.process_submissions import (
     process_submission,
     process_submissions,
 )
-from recommender.fetch_youtube_data import search_youtube_videos
 
 CLIENT_ID = os.environ.get("REDDIT_APP_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("REDDIT_APP_CLIENT_SECRET")
@@ -59,7 +59,7 @@ async def home():
 @app.get("/authorize")
 async def authorize():
     reddit = await get_reddit()
-    url = reddit.auth.url(["identity", "read"], STATE, "permanent")
+    url = await reddit.auth.url(["identity", "read"], STATE, "permanent")
     return RedirectResponse(url)
 
 
@@ -79,12 +79,14 @@ async def authorize_callback(request: Request):
 
 
 @app.get("/search/{search_query}")
-async def search(search_query: str, limit: int = 10):
+async def search(search_query: str, limit: int = 5):
     refresh_token = load_refresh_token()
     if not refresh_token:
         return {"error": "User not authenticated."}
 
-    youtube_data_futures = search_youtube_videos(search_query, max_results=limit)
+    youtube_data_futures = search_youtube_videos(
+        search_query, max_results=limit
+    )
 
     user_reddit = asyncpraw.Reddit(
         client_id=CLIENT_ID,
@@ -106,9 +108,11 @@ async def search(search_query: str, limit: int = 10):
 
     youtube_data = await youtube_data_futures
     all_submissions = {
-        "reddit": {search_query: processed_reddit_submissions},
-        "youtube": youtube_data,
+        search_query: [
+            {"reddit": processed_reddit_submissions, "youtube": youtube_data}
+        ]
     }
+    # return process_all_posts(all_submissions, search_query)
     return all_submissions
 
 
