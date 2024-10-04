@@ -33,7 +33,7 @@ def save_data(all_submissions: dict):
                     )
                     if (
                         latest_submissions is None
-                        and created_at > latest_submissions
+                        or created_at >= latest_submissions
                     ):
                         post = Posts(
                             id=reddit_submission["id"],
@@ -52,7 +52,7 @@ def save_data(all_submissions: dict):
                     )
                     if (
                         latest_submissions is None
-                        and created_at > latest_submissions
+                        or created_at >= latest_submissions
                     ):
                         post = Posts(
                             id=youtube_submission["id"],
