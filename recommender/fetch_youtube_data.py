@@ -88,13 +88,16 @@ async def search_youtube_videos(
                 video_id = search_result["id"]["videoId"]
                 video_title = search_result["snippet"]["title"]
                 video_description = search_result["snippet"]["description"]
+                created_at = search_result["snippet"]["publishedAt"]
 
                 # Get video statistics
                 stats_url = f"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={video_id}&key={YOUTUBE_API_KEY}"
                 async with session.get(stats_url) as response:
                     video_response = await response.json()
 
-                statistics = video_response["items"][0]["statistics"]
+                video_data = video_response["items"][0]
+                print(video_data.keys())
+                statistics = video_data["statistics"]
 
                 # Get video transcript
                 try:
@@ -119,6 +122,7 @@ async def search_youtube_videos(
                         "description": video_description,
                         "views": statistics.get("viewCount"),
                         "likes": statistics.get("likeCount"),
+                        "created_at": created_at,
                         "body": transcript_text,
                         "comments": comments,
                     }

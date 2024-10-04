@@ -8,11 +8,14 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 
+from recommender.database import init_db
 from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.process_submissions import (
     process_submission,
     process_submissions,
 )
+from recommender.save_data import save_data, save_structured_output
+from recommender.structured_output import process_all_posts
 
 CLIENT_ID = os.environ.get("REDDIT_APP_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("REDDIT_APP_CLIENT_SECRET")
@@ -26,6 +29,11 @@ STATE = secrets.token_urlsafe(16)
 REFRESH_TOKEN_FILE = "refresh_token.json"
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
 
 
 async def get_reddit():
@@ -59,8 +67,8 @@ async def home():
 @app.get("/authorize")
 async def authorize():
     reddit = await get_reddit()
-    url = await reddit.auth.url(["identity", "read"], STATE, "permanent")
-    return RedirectResponse(url)
+    url = reddit.auth.url(["identity", "read"], STATE, "permanent")
+    return RedirectResponse(url=str(url))
 
 
 @app.get("/authorize_callback")
@@ -79,7 +87,7 @@ async def authorize_callback(request: Request):
 
 
 @app.get("/search/{search_query}")
-async def search(search_query: str, limit: int = 5):
+async def search(search_query: str, limit: int = 5, batch_size: int = 20):
     refresh_token = load_refresh_token()
     if not refresh_token:
         return {"error": "User not authenticated."}
@@ -112,8 +120,10 @@ async def search(search_query: str, limit: int = 5):
             {"reddit": processed_reddit_submissions, "youtube": youtube_data}
         ]
     }
-    # return process_all_posts(all_submissions, search_query)
-    return all_submissions
+    save_data(all_submissions)
+    results = await process_all_posts(all_submissions, search_query, batch_size)
+    save_structured_output(search_query, results)
+    return results
 
 
 if __name__ == "__main__":

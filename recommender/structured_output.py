@@ -45,6 +45,28 @@ async def batch_process_posts_for_product_review(
     return await asyncio.gather(*tasks)
 
 
+def convert_to_dict(review_analysis: AllReviewAnalysis) -> dict:
+    return {
+        "reviews": [
+            {
+                "source": review.source,
+                "product_name": review.product_name,
+                "review_summary": review.review_summary,
+                "pros": review.pros,
+                "cons": review.cons,
+                "sentiment": review.sentiment,
+                "is_product_of_interest": review.is_product_of_interest,
+                "post_id": review.post_id,
+                "detail_score": review.detail_score,
+                "balanced_score": review.balanced_score,
+                "well_written_score": review.well_written_score,
+            }
+            for review in review_analysis.reviews
+        ],
+        "overall_decision": review_analysis.overall_decision or "",
+    }
+
+
 async def process_all_posts(
     data: dict, search_query: str, batch_size: int
 ) -> AllReviewAnalysis:
@@ -83,10 +105,11 @@ async def process_all_posts(
             key=overall_decisions.count,
         )
 
-    return AllReviewAnalysis(
+    all_review_analysis = AllReviewAnalysis(
         reviews=combined_reviews,
         overall_decision=final_decision,
     )
+    return convert_to_dict(all_review_analysis)
 
 
 async def main():
