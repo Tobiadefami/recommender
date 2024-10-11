@@ -1,0 +1,377 @@
+{
+  "reviews": [
+    {
+      "source": "reddit",
+      "product_name": "ROG Ally",
+      "review_summary": "The user is overall pleased and impressed with the ROG Ally after 15-20 hours of use. They highlight its performance, aesthetics, malleability, value, and QoL/accessibility.",
+      "pros": [
+        "Good performance in high fidelity games",
+        "Reasonable loading times",
+        "Comfortable to use for extended periods",
+        "Handheld PC capabilities",
+        "Good value compared to competitors",
+        "Multiple audio profiles",
+        "3 months of Xbox Game Pass Ultimate included"
+      ],
+      "cons": [
+        "White color is basic",
+        "Small stand feels cheap",
+        "Cumbersome for productivity tasks",
+        "Battery life varies and can be short in high performance modes",
+        "Fans are audible in higher power modes"
+      ],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "14i60it",
+      "detail_score": 9,
+      "balanced_score": 8,
+      "well_written_score": 9
+    },
+    {
+      "source": "reddit",
+      "product_name": "ROG Ally",
+      "review_summary": "Compared to the Steam Deck, the ROG Ally shines in screen quality, ability to play PC Game Pass, and ease of playing games from other stores. However, it has better performance when plugged in or in Turbo mode, and the setup process is cumbersome.",
+      "pros": [
+        "Better screen quality than Steam Deck",
+        "Ability to play PC Game Pass",
+        "Ease of playing games from other stores"
+      ],
+      "cons": [
+        "Better performance when plugged in or in Turbo mode",
+        "Cumbersome setup process",
+        "Battery life is better on Steam Deck"
+      ],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "jphla7y",
+      "detail_score": 8,
+      "balanced_score": 7,
+      "well_written_score": 8
+    },
+    {
+      "source": "reddit",
+      "product_name": "ROG Ally",
+      "review_summary": "The user wants an Ally for its ability to play Game Pass and other non-Steam games, but notes that the software is currently rough and there are minor fit and finish issues.",
+      "pros": ["Ability to play Game Pass and other non-Steam games"],
+      "cons": ["Software is currently rough", "Minor fit and finish issues"],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "jpes8kt",
+      "detail_score": 7,
+      "balanced_score": 7,
+      "well_written_score": 7
+    },
+    {
+      "source": "reddit",
+      "product_name": "ROG Ally",
+      "review_summary": "The user is tempted to buy the ROG Ally with its dock to use it as an office desktop due to its high performance and low power cores.",
+      "pros": ["High performance", "Low power cores"],
+      "cons": [],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "jpjpqmq",
+      "detail_score": 6,
+      "balanced_score": 6,
+      "well_written_score": 6
+    },
+    {
+      "source": "reddit",
+      "product_name": "asus rog",
+      "review_summary": "The user expresses concerns about the quality control of the Asus ROG Strix line, suggesting that it may be subpar and increase the risk of receiving a defective product.",
+      "pros": null,
+      "cons": ["Concerns about quality control"],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "1btw0yw",
+      "detail_score": 5,
+      "balanced_score": 6,
+      "well_written_score": 7
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus ROG Phone 7 Ultimate",
+      "review_summary": "The Asus ROG Phone 7 Ultimate is a top-tier gaming phone with impressive hardware specifications, including a Snapdragon 8 Gen 2 processor, 16GB RAM, and a 6,000mAh battery. It features a 165Hz AMOLED display, advanced cooling systems, and various gaming-centric features. However, its camera system is not world-class, which is acceptable for a gaming phone. The phone is designed for gamers, with features like air triggers, a split battery design, and compatibility with accessories like the AeroActive Cooler 7.",
+      "pros": [
+        "High-performance hardware",
+        "165Hz AMOLED display",
+        "Advanced cooling systems",
+        "Gaming-centric features",
+        "Long battery life"
+      ],
+      "cons": ["Mediocre camera system", "Thick and heavy design"],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "OkLOJapGjC4",
+      "detail_score": 9,
+      "balanced_score": 8,
+      "well_written_score": 9
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus Rog Phone 8 Pro",
+      "review_summary": "The Asus Rog Phone 8 Pro is a gaming phone with a more widespread appeal, featuring waterproofing, wireless charging, improved cameras, and a more traditional design. It has a 6.78-inch E6 OLED display with a 165Hz refresh rate, Snapdragon 8 Gen 3 chipset, up to 24GB of RAM, and a 5500mAh battery. The phone also includes a triple camera setup with gimbal stabilization, a telephoto camera, and an ultra-wide camera.",
+      "pros": [
+        "Waterproofing (IP68)",
+        "Wireless charging",
+        "Improved cameras",
+        "Snapdragon 8 Gen 3 chipset",
+        "165Hz adaptive refresh rate display",
+        "Programmable mini LED Matrix",
+        "Side port for accessories",
+        "Good battery care features",
+        "Fast charging (65W)"
+      ],
+      "cons": [
+        "Smaller battery compared to previous models",
+        "Punch hole cutout on the display",
+        "Downgraded speakers and air trigger capacitive controls",
+        "Gets hot without the cooling fan",
+        "No built-in subwoofer in the cooler"
+      ],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "2sYkqYN77c0",
+      "detail_score": 9,
+      "balanced_score": 8,
+      "well_written_score": 9
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus Rog Phone 8 Pro",
+      "review_summary": "The design of the Asus Rog Phone 8 Pro is boring.",
+      "pros": [],
+      "cons": ["Boring design"],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "UgzLX3v8RnphWkBRa0l4AaABAg",
+      "detail_score": 2,
+      "balanced_score": 2,
+      "well_written_score": 2
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus Rog Phone 8 Pro",
+      "review_summary": "The Rog Phone 7 is still the best one.",
+      "pros": [],
+      "cons": [],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "Ugxb2kIegIU_shFO8zR4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus Rog Phone 8 Pro",
+      "review_summary": "The Rog Phone 8 Pro is a downgrade from the 7th. The punch camera is something I hate in modern phones. Other gaming phones have circumvented this issue by hiding the camera underneath the screen.",
+      "pros": [],
+      "cons": ["Punch camera", "Downgrade from the 7th"],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "UgyKPCR-PYi24TQU25B4AaABAg",
+      "detail_score": 5,
+      "balanced_score": 5,
+      "well_written_score": 5
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Request for Asus ROG 7 Ultimate",
+      "pros": [],
+      "cons": [],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "UgzntZDcho5WlvPejch4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Comment on price in Bangladesh",
+      "pros": [],
+      "cons": [],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "Ugwms-s0SKsZ49Hl1uB4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Negative comment on the phone",
+      "pros": [],
+      "cons": ["Phone sucks"],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "Ugz4lHEmDIwYtl7Ce8V4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Positive sentiment about the phone",
+      "pros": ["Dream phone"],
+      "cons": [],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "Ugzv7izrhmILv6EnJeN4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Comment on power and games",
+      "pros": ["Powerful"],
+      "cons": ["Zero games that matter"],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "UgyXhmBlWIsJ607M2x14AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "rog my dad thinks that laptop does nothing and he doesn't buy me one so can you please send one free",
+      "pros": [],
+      "cons": [],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "Ugy-cnfUSAa1XoZnEFN4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "which is better? tuf a16 or this with similar specs?",
+      "pros": [],
+      "cons": [],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "UgwEJ0ZP7-ndSwWezOp4AaABAg",
+      "detail_score": 2,
+      "balanced_score": 2,
+      "well_written_score": 2
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Rog g16 logo light have?",
+      "pros": [],
+      "cons": [],
+      "sentiment": "neutral",
+      "is_product_of_interest": true,
+      "post_id": "Ugz9jHAj9elym8cob-t4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "asus rog",
+      "review_summary": "Ima Convince my dad to get this next year",
+      "pros": [],
+      "cons": [],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "Ugxbjx8syk86nxa9xFt4AaABAg",
+      "detail_score": 1,
+      "balanced_score": 1,
+      "well_written_score": 1
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus ROG Zephyrus G14",
+      "review_summary": "The reviewer is highly impressed with the new Asus ROG Zephyrus G14 and G16, praising their refined and elegant design, OLED displays, and performance. However, there are concerns about the lack of a print screen key, potential OLED burn-in, and the use of a proprietary adapter.",
+      "pros": [
+        "Refined and elegant design",
+        "OLED displays with fantastic colors and contrast",
+        "High performance with AMD and Intel chips",
+        "Good thermal performance and fan noise",
+        "Massive trackpad",
+        "Great speakers"
+      ],
+      "cons": [
+        "Lack of print screen key",
+        "Potential OLED burn-in",
+        "Proprietary adapter instead of USB-C",
+        "No replaceable RAM"
+      ],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "Qr0Xvw9cjCU",
+      "detail_score": 9,
+      "balanced_score": 8,
+      "well_written_score": 9
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus ROG Zephyrus G16",
+      "review_summary": "The reviewer is highly impressed with the new Asus ROG Zephyrus G14 and G16, praising their refined and elegant design, OLED displays, and performance. However, there are concerns about the lack of a print screen key, potential OLED burn-in, and the use of a proprietary adapter.",
+      "pros": [
+        "Refined and elegant design",
+        "OLED displays with fantastic colors and contrast",
+        "High performance with AMD and Intel chips",
+        "Good thermal performance and fan noise",
+        "Massive trackpad",
+        "Great speakers"
+      ],
+      "cons": [
+        "Lack of print screen key",
+        "Potential OLED burn-in",
+        "Proprietary adapter instead of USB-C",
+        "No replaceable RAM"
+      ],
+      "sentiment": "positive",
+      "is_product_of_interest": true,
+      "post_id": "Qr0Xvw9cjCU",
+      "detail_score": 9,
+      "balanced_score": 8,
+      "well_written_score": 9
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus ROG Zephyrus G16",
+      "review_summary": "The commenter finds the speakers on the G16 to be okay but muffled, with muddy highs and decent bass. Performance on the 4090 model is lacking due to PCIe 8x Gen3.0 connection. The device gets very hot at the top of the keyboard. The screen is awesome but has color shift and green hue issues. The commenter returned two systems and prefers MacBook Pro for its build quality.",
+      "pros": ["Awesome screen"],
+      "cons": [
+        "Muffled speakers with muddy highs",
+        "Lacking performance on 4090 model",
+        "Device gets very hot at the top of the keyboard",
+        "Color shift and green hue issues on the screen"
+      ],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "UgzPC4Wk5Js6H94qpGl4AaABAg",
+      "detail_score": 8,
+      "balanced_score": 7,
+      "well_written_score": 8
+    },
+    {
+      "source": "youtube",
+      "product_name": "Asus ROG Zephyrus G16",
+      "review_summary": "The commenter dislikes Asus products, stating that they tend to break after one year.",
+      "pros": [],
+      "cons": ["Tends to break after one year"],
+      "sentiment": "negative",
+      "is_product_of_interest": true,
+      "post_id": "UgxfQvgUsI11Xd2vzKF4AaABAg",
+      "detail_score": 3,
+      "balanced_score": 3,
+      "well_written_score": 3
+    }
+  ],
+  "overall_decision": "The Asus ROG Phone 7 Ultimate is a highly recommended product for gamers due to its high-performance hardware, advanced cooling systems, and gaming-centric features. While its camera system is not the best, it is sufficient for a gaming phone. The phone's design is thick and heavy, which may not appeal to everyone, but it is a trade-off for the impressive battery life and performance. Overall, if you are a gamer looking for a top-tier gaming phone, the Asus ROG Phone 7 Ultimate is a great choice."
+}

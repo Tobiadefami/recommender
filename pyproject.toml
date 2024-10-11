@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "recommender"
+version = "0.1.0"
+description = ""
+authors = ["tobiadefami <tobiadefami@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+praw = "^7.7.1"
+aiohttp = "^3.10.0"
+asyncio = "^3.4.3"
+fastapi = "^0.111.1"
+langchain-core = "^0.2.38"
+langchain-openai = "^0.1.23"
+langchain = "^0.2.16"
+sqlalchemy = { extras = ["postgresql"], version = "^1.4.0" }
+psycopg2-binary = "^2.9.1"
+youtube-transcript-api = "^0.6.2"
+google-api-python-client = "^2.145.0"
+asyncpraw = "^7.7.1"
+outlines = "^0.0.46"
+fastapi-cors = "^0.0.6"
+
+[tool.pyright]
+venvPath = "."
+venv = "/home/chief/.pyenv/versions/3.10/envs/recommender_dev"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

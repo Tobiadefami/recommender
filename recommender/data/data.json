@@ -1,0 +1,363 @@
+{
+  "asus rog": [
+    {
+      "reddit": [
+        {
+          "user": "ThucydidesJones",
+          "id": "14i60it",
+          "title": "Thoughts on the ASUS ROG Ally after about 20 hours",
+          "score": 190,
+          "url": "https://www.reddit.com/r/hardware/comments/14i60it/thoughts_on_the_asus_rog_ally_after_about_20_hours/",
+          "num_comments": 90,
+          "created": 1687647057,
+          "body": "Got my wisdom teeth out and have been spending time with the ROG Ally. I posted on the ROG sub but it doesn't seem that active. Figured the folks here might be more interested.\n\n**General/intro:**\n\nI wasn’t sure what to expect going into the Ally – the performance capability combined with the Windows OS was really appealing, but I’d never used handheld PC before and my own experiences with handheld gaming devices has been mixed.\n\nI have about 15 to 20 hours on the Ally so far, and I’m overall pretty pleased and impressed.\n\n[Got a few photos of it too](https://imgur.com/a/lOtperD)\n\n**Performance:**\n\nAtomic Heart and Battlefront II ended up being the two high fidelity games I explored most on the device. At 1080p, I got around 35 - 55 fps on a mix of Med/High/Ultra settings in the former (unplugged), and about 40 – 80fps on High settings in the latter (unplugged) - reason for the large range is the space fighting mode is much less intensive. I did plug in for a bit and the performance certainly improved even further, but I do like not being tethered to a charger/cable, so I was fine with the 25w Turbo mode.\n\nLoading times felt reasonable. I didn’t time any, but I never felt I was staring at loading/black screens for an intrusive amount of time.\n\n(I also installed the Ninja Gaiden remaster trilogy, which expectedly runs maxed even on Silent mode.)\n\n**Aesthetics/Physical Build:**\n\nThe RGB lighting, while often a bit of a meme in gaming discussions, really does look cool and presents a nice visual flair. However, I’m not a huge fan of the color white for tech/entertainment items, so I may get a wrap of some sort (or a form-fitting case) – white is so basic, the Ally has a crazy design on its back, why not go crazy with the color? Orange, bright green, navy, crimson, etc. would be sweet. I’d probably take pink over white if offered.\n\nAnyway, the Ally feels pretty comfortable to my hands – my gaming sessions generally last 30 to 60 minutes, and I’ve not at any point felt uncomfortable or like my hands needed a rest. The last time I habitually used a gaming controller was well over a decade ago, and to my hands the buttons/joysticks on the Ally feel fine. I know there is discussion of a software-based deadzone issue, but I haven’t noticed anything intrusive to my experience.\n\nWhile the unit itself feels quality, the small stand that comes with it does look and feel sort of cheap. But it will keep the Ally rigid, even on uneven surfaces like a bed or couch.\n\n**Malleability:**\n\nThis and performance are probably the two most appealing selling points. The Ally really is a handheld PC and not just a gaming machine. If your game/program of choice works on your PC, it should work on the Ally with little-to-no fumbling. That said, despite the very open-ended nature of what the Ally can do, I can imagine it being cumbersome to conduct anything other than entertainment activities or very basic web browsing or file navigation, given the screen size and lack of physical keyboard. Though, I’m sure you can use attachments/accessories to make the experience more conducive to productivity tasks or more intensive non-entertainment activities.\n\n**Value:**\n\nI see a lot of comparisons and reviews noting the Steam Deck being cheaper, but if you compare the top Steam Deck model to the Ally, the price difference is about $50 retail. And if you compare the Ally with its other cohorts in the handheld PC landscape, I think the Ally strikes a sweet spot balance between performance/utility and price. There are more powerful handheld PCs out there… and you can expect to pay anywhere from $300 to $700 more for them than you would for the Ally – which, honestly at that point ($1,000 - $1,500), you’re starting to be in the territory of “may as well build your own desktop gaming PC/get a gaming laptop” money. Also worth noting that the Ally comes with 3 months of Xbox Game Pass Ultimate!\n\n**QoL/Accessibility:**\n\nThe Ally being a proper handheld PC and not only a gaming device does mean there is more to consider when making decisions. Keeping track of the multiple launchers and pieces of software that see routine updates can be easy to overlook. But being able to access the Command Center literally whenever (in-game? no problem!) is really nice, though it would be better if it displayed detailed battery information (not just a %, but also an estimated time remaining given the current activity/power output).\n\nThe Ally offers a number of different audio profiles, and the speakers can get pretty loud depending on your selection. I have it running on the handheld-specific mode, and I rarely bring the volume above 30%.\n\nThe battery life varies – if you’re unplugged and playing high fidelity games on the Turbo mode with high screen brightness, it’s likely going to last around 90 minutes (game-dependent). That number can be increased quite a bit by going down to 15w and/or decreasing brightness.\n\n**Random Notes/Tips:**\n\nMake sure when you’re switching the power modes, you don’t accidentally go one too far. I had thought I put it on Turbo one night, but I actually had it on Silent. I loaded up Battlefront II and got horrible stutters (to the point the audio was stuttering too) – figured it was a BF bug and tried Atomic Heart… same problem. Then I realized, “Wait. Why is it so quiet?” The Ally’s fans are noticeably audible in the higher power modes (though game audio often drowns them out), so if your Ally is sounding “silent” and you’re trying to play high fidelity games, you’re likely in the wrong mode!\n\nI turned off VMP and Core Isolation, as advised in [this reddit thread](https://www.reddit.com/r/ROGAlly/comments/149fn2k/psa_core_isolation_is_on_by_default/). Worth considering if you will only use the device for gaming, but not 100% necessary if you have reservations about messing with settings. I did not see any of the side-effects some users in the thread noted regarding PINs/setup, but YMMV.\n\n**Conclusion:**\n\nI think ASUS has confidently brought a formidable contender to the handheld landscape. There are things I’d like to see enhanced for a second revision or follow-up model (colors other than white, a larger/higher capacity battery, quieter fans/fan design, more aggressive cooling for the higher-powered modes, and maybe another USB-C port), but overall, the Ally is immensely fun to game on and it has been nothing but reliable and easy to use across my 20ish hours on it so far. I expect to get a lot more use out of it and I am eager to see what ASUS and AMD may be able to do with software updates to continue optimizing and enhancing the Ally’s performance and usability.",
+          "comments": [
+            {
+              "author": "Cheeseburgerbobby",
+              "id": "jphla7y",
+              "body": "Compared to my Steam Deck, the Ally shines when it comes to the screen, ability to play pc gamepass and ease of playing games from other stores. But based on the current bios, its only really better than SD of you play plugged in or turbo mode. Deck is equal or even better in some cases at 10 watts and is clearly better at battery life at those wattages. Ally is less of a portable and more like a comfortable laying in the couch connected to a charger type of machine\n\nAlso the setting up process is night and day, SD is like a Switch or Apple product, Ally is the typical cumbersome 1-2 hour Windows experience\n\nIf Asus can fix the performance and bugs it will be great",
+              "score": 41,
+              "created": 1687714151,
+              "replies": []
+            },
+            {
+              "author": "Psygnosis7",
+              "id": "jpes8kt",
+              "body": "/r/ROGAlly seems pretty active?\n\nI really want an Ally as an option to more easily do things my Steam Deck can't do well (gamepass and other non-Steam games) [edited to remove brevity and add nuance] but things seem a bit rough right now with the software.  Also minor fit and finish things, like not including a cover for the GPU dock connector.",
+              "score": 20,
+              "created": 1687652306,
+              "replies": [
+                {
+                  "author": "jay9e",
+                  "id": "jpgagby",
+                  "body": "> I really want an Ally to do things my Steam Deck can't (gamepass and other non-Steam games)\n\nI read stuff like this so much and don't get it? Dual booting works perfectly fine on the steam deck?",
+                  "score": 12,
+                  "created": 1687689498,
+                  "replies": [
+                    {
+                      "author": "Psygnosis7",
+                      "id": "jph8gxf",
+                      "body": "I tried Windows on the Deck and not only are you dealing with Windows handled quirks, it's a SteamOS first, Windows second device, making things just a little bit weirder.  And not only would I be losing game storage space to a second OS, the amount of tinkering I would be doing would increase drastically, and I want my Steam Deck to just work, that's the magic of it.\n\n\nAlso there's *nothing* wrong with having both.",
+                      "score": 17,
+                      "created": 1687708515,
+                      "replies": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "user": "jagcalle",
+          "id": "1btw0yw",
+          "title": "Legion or Asus ROG?",
+          "score": 12,
+          "url": "https://www.reddit.com/r/GamingLaptops/comments/1btw0yw/legion_or_asus_rog/",
+          "num_comments": 23,
+          "created": 1712056259,
+          "body": "So, I started off looking at the asus ROG Strix line, which look rather promising, but call me superstitious, but reading in here, it seems that quality control at Asus is a bit subpar, increasing the odds of getting a shitty one. As Murphys law tends to love me, and as I’m not good at tech-stuff, I better go for more ”idiot proof” like Legion. \n\nAm I over reacting/over analyzing? \nDon’t want to spend 2500-3k $ and risk ending up with an expensive shelf ornament…",
+          "comments": []
+        }
+      ],
+      "youtube": [
+        {
+          "author": "Marques Brownlee",
+          "id": "OkLOJapGjC4",
+          "title": "The ROG Phone 7 Ultimate is Just Ridiculous!",
+          "description": "The $1400 ROG Phone 7 Ultimate is the most dedicated hardcore flagship out yet. MKBHD Merch: http://shop.MKBHD.com Tech ...",
+          "views": "2453745",
+          "likes": "79395",
+          "created_at": "2023-04-13T12:30:43Z",
+          "body": "[Music] all right what can I say gaming phones have come a long way since they first started coming out a few years ago not just because there's more gaming phones and that's more competition but also just because regular Flagship phones now have insane Hardware too but still at the top of the Heap for gaming phones sits this guy the Asus Rog Phone 7 Ultimate let's just start with just the numbers okay numbers on paper Snapdragon 8 Gen 2 at 3.2 gigahertz with the adreno 740 GPU 16 gigs of lpddr5x RAM half a terabyte of ufs 4.0 storage a 6.78 inch 1080p AMOLED display at 165 Hertz up to 1200 nits a 6 000 milliamp hour battery with 65 watt charging and two usb-c ports plus a headphone jack kind of sounds like it has everything because it nearly does but I actually do want to start with the one thing that it doesn't have which is a a world-class camera system but the thing is I mean that's probably fine it is a gaming phone after all now obviously it's still expensive so you don't want to feel like you're getting a bad camera but let's be real the camera is not the priority in these phones or for the people buying these phones so I mean really the objective is to give you a good enough camera system that you're not mad but it's not going to be a good enough camera that you're out bragging about it so this is a 50 megapixel primary camera that bends to 12 and a half megapixels and can do that lossless 2x zoom and then there is a 13 18 megapixel Ultra wide and that third camera is a 5 megapixel macro so not a telephoto it's all fine right it's a it's a pretty classic like daylight shots decent lighting is fine and then as soon as the lighting conditions deteriorate so do the photos and videos you get a lot of noise pretty quickly I still got to give props to Asus for doing a pretty great job with HDR though and getting a good amount of detail out of most normal shots and they've actually even added some pretty clever features to their default camera app and I don't think of Asus phones usually as like the best cameras ever but there's the pro photo and video modes that are getting you a few new features to play with that are just like fun to use so combined with the 32 megapixel selfie camera I feel like I can confidently give this whole camera Suite like a b it's definitely not bad it's just it's not why you buy this phone I mean if you're looking for the reason you buy this phone look no further than the design because that says everything you need to know this is the Phantom white finish on the back here still the this year it's a combination of satin white and I guess a different satin white maybe matte white but it still has the text everywhere Rog O7 Republic of Gamers 206 8K Ultra HD the ultimate version still has this display on the back which you can't even see while you're using the phone but it will display to the people around you either in animation or some information in a scrolling Banner or when it's face down and charging you can see your percentage things like that you can't have too big of a camera up like you have these gigantic camera Rings now and a lot of these Flagship phones you can't do that on this phone because it's supposed to be perfectly balanced for when you're you're gaming and holding it in landscape mode and so that's why you have that split battery design 3000 milliamp hours over here 3000 more milliamp hours over here and actually the motherboard is in the middle which is a pretty clever design and so now it's perfectly balanced as all things should be now like I said gaming phone right so we have these awesome Flagship phones s23 Ultra Oppo Find X6 Pro they also have incredible numbers and specs but this one separates itself by leaning a little bit more towards gaming and media and that experience not that those aren't good at gaming in media but well gaming is Media so the things that this does to be good at gaming are great at that and watching videos and just sort of scrolling around using a phone like normal so that's why you end up with not just 120 hertz ltpo but a Samsung built flat 165 Hertz OLED with a 720 Hertz touch sample rate and a 23 millisecond touch latency it's once again the most responsive and smoothest display I've ever used in a phone my eye can actually tell the difference between this and 120hz display and a lot of the other flagships out right now which is awesome so that's of course going to be great for gaming getting every single last frame out of the games that actually support that but also that's pretty nice for just scrolling around and flipping through apps and social media too this split battery setup they've got going on they've been doing that for a couple years too 3 000 plus 3000 is a 6 000 milliamp hour battery and that actually allows them to fast charge them in parallel so you get 65 Watts going into the phone it'll charge from zero to 100 in like 45 minutes which is already 10 minutes faster than last year's phone and they even have this graphic uh that they sent me showing the standard batteries need a thin separator while fast charging battery is made a thicker separator because they push more current and it's just safer to do it this way sounds like this would be a trade-off that you have to think really hard about in any other phone except it doesn't matter in this phone because the whole phone is thick it's thick enough to handle a gigantic battery and fast charging I mean that's that's at least three C's you know plus there's a whole Suite of battery management features that make this thing last forever I mean it's already a battery champ easily pulling seven hours of screen on time at 165 Hertz but there's also scheduled charging there's also study charging so it doesn't fast charge every time you plug it in if you don't want it to there's also custom charging limits there's also pass-through charging there is no wireless charging but there are two USBC ports as I mentioned one on the bottom and one on the side no it doesn't charge twice as fast if you plug in both the same time I tried that's still the Legion phone dual little trick but uh interestingly the the side USB port is actually considered the primary one that's the faster USB 3.1 data speeds so either way if you plug in you can get the fast charging but if you want to plug in any accessories or anything like that that will go into that side port here but speaking of accessories this is this is probably all you need to know about how ridiculous this phone is and who it's targeted for so this thing this is the Aero active cooler 7. so this is a clip-on plug in active cooling accessory that you plug into and connect to the back of the phone that has a heatsink fan RGB lights inside and this little uh this black tab on the on the side of this Rog phone is actually an opening it motorizes and opens up so you clamp on this cooler over the side of the phone just like this plug it in by the USB on the side and the fan starts spinning up and then this black like lift gate over here on the side of the phone opens up to allow active airflow through the side of the phone it's opening up the phone and spinning in that cool air so when you're gaming this will help bring down the back cover Surface by as much as 20 to 25 degrees Celsius according to Asus Labs but there's also like there's four trigger buttons back here there's RGB lights that change and breathe depending on what you're doing and there's a whole subwoofer for enhanced bass and it actually works [Music] [Applause] [Music] there is a genuine Improvement in the sound quality when listening to it with the subwoofer on the back of the phone and the front-facing speakers combined you never expect these things to be as good as they are but just the whole thing just this this whole dedication to building something that is going to take a few degrees off your your phone and give you a couple extra frames their dedication to that gamer is impressive it literally opens up the back of the phone and by the way you can take this off and it closes that port on the back and it's still ip54 water resistant when it's closed this one feels like a sports car where a lot of the ridiculous specialized Tech is completely unnecessary to most people but it'll eventually trickle down into everyday cars like most regular cars slash phones don't need this crazy moving part and active aerodynamics they don't need extra RAM and extra power but eventually eventually regular Flagship phones in a few years will have all of this power and all of this Cooling and all the capabilities of this phone they'll just be normal phones so make sure you subscribe to see the reviews of those phones when they come out but for now this is this is still going to separate itself as a phone for the gamer especially just because of the way it's built obviously it's thicker than a normal phone but they they still have things like bezels on the front for your thumbs and the front-facing speakers so you can hold it like this and have a place when you're gaming to rest your fingers that's something most phones aren't going to do anymore the X report of course and the compatibility with the crazy accessories and just their willingness to just use like basic off-the-shelf parts for the things that don't really matter so much like sure this Optical fingerprint reader it's fine it's totally normal the cameras as well like I said you don't get a telephoto camera you just get like an off-the-shelf B plus b camera system fine but when it comes to anything that a gamer could possibly want to get that last one or two fps to get that last second off of your lap time or that last kill or to be able to have that little bit of an advantage they'll throw the kitchen sink at it they'll do all the software features in the world and Hardware stuff to make that happen and I respect that there's no way I could go through all those things in this single video but I respect that a lot here are some of my personal favorites there is a new Vapor chamber cooling system inside of this phone that you'll never see but the new y-shaped Wick columns with larger radii give a 168 percent Improvement to Thermal efficiency according to asus's testing the custom mappable air triggers built into the top corners of this phone have been improved for better sensitivity and they can be custom mapped for all kinds of stuff even outside of games and this phone has Wi-Fi 6E and Wi-Fi 7 support even though none of our routers really do yet this is a really impressive purpose-built machine through and through I'm glad they made it and uh yeah gaming phones of today walk so that flagships of Tomorrow can run thanks for watching catch you guys in the next one peace [Music]",
+          "comments": [
+            {
+              "id": "UgzTiCYCzCVBuProGcZ4AaABAg",
+              "author": "@maureenkwamboka7556",
+              "text": "That shirt",
+              "likes": 0,
+              "published_at": "2024-09-07T14:16:32Z",
+              "replies": []
+            },
+            {
+              "id": "Ugyz98OeINXEqlhHL314AaABAg",
+              "author": "@PND777",
+              "text": "Why the video is in Spanish?",
+              "likes": 0,
+              "published_at": "2024-08-29T14:45:17Z",
+              "replies": []
+            },
+            {
+              "id": "UgwLNIf4po56pPbaF554AaABAg",
+              "author": "@Bárt-n6d",
+              "text": "as the machine god intended",
+              "likes": 0,
+              "published_at": "2024-07-05T06:35:08Z",
+              "replies": []
+            },
+            {
+              "id": "Ugx1JF0Z6kw4bqpW0vx4AaABAg",
+              "author": "@muhammadahsen9465",
+              "text": "They ain&#39;t no good games on Android, scarce though compared to PC and consoles",
+              "likes": 0,
+              "published_at": "2024-07-02T09:42:02Z",
+              "replies": []
+            },
+            {
+              "id": "UgyvM-apID7_5CmY9Rx4AaABAg",
+              "author": "@songodluffy1891",
+              "text": "Bros out there saying devils name satin",
+              "likes": 0,
+              "published_at": "2024-06-22T13:19:36Z",
+              "replies": []
+            }
+          ]
+        },
+        {
+          "author": "GSMArena Official",
+          "id": "2sYkqYN77c0",
+          "title": "Asus ROG Phone 8 Pro review",
+          "description": "ROG Phone 8 Series might be the gaming phones with most mainstream appeal to come out of the ROG family as of yet making ...",
+          "views": "269938",
+          "likes": "3874",
+          "created_at": "2024-01-16T02:00:00Z",
+          "body": "[Music] [Music] Asus is back with a new 2024 Flagship gaming phone the Asus Rog Phone 8 Pro in many ways this one is different from the Rog phones of the past but does the 8 Pro still have what it takes to be a gaming phone King I'm will for GSM Arina and let's find out in our full review [Music] gaming phones in general are a pretty Niche product for mobile gaming fans and the Rog phones have generally set the bar for packing the most gaming related features and customization options around this time though Asus wanted to make a phone with a more widespread appeal which can better compete against traditional flagships this means they've toned down some of the unique Hardware features we saw in the past and in exchange you get a gaming phone with waterproofing wireless charging and improved cameras the design of the phone is more traditional as well ours is in a solid matte black and there are no gamer style bright colors metallic elements or geometric shapes there is a stripe accent and some text here and there and the camera bump has an interesting two-step design the gorilla glass back meets an aluminum frame and the phone is smaller and lighter than last year there is a bit of gamer flare though thanks to the lighting On The Backs side it's done differently between the vanilla r Phone 8 and the pro model on the former you get a light up RGB logo while on the pro there's a programmable mini LED Matrix Rog calls this Matrix anime vision and it supports black and white GIF animations there are a bunch pre-loaded and you can also create and import your own as well also the signature side port is back it's a second USBC port for charging and hooking up accessories in a way that won't obstruct your gaming the side port also supports display port 1.4 to get get video output from the phone to an external monitor even with the extra Port the Rog Phone 8 family has ip68 rated protection against water submersion that's a first previous Rog phones had only up to ip54 Splash proofing let's go back to the accessories perhaps the most important one is the aeroactive cooler X it comes bundled with the most expensive Rog Phone 8 Pro Edition but with the normal Rog Phone 8 Pro or vanilla Rog Phone 8 you'd have to buy the cooler separately it's a meler cooler which also has RGB lights extra button inputs for gaming a kickstand and USB type-c and 3.5 mm ports the cooler is simple to attach thanks to a spring-loaded latch mechanism and when it's on it cools your hands and more importantly the phone for much better sustained performance for those long gaming sessions compared to last year's cooler you're missing both the built-in subwoofer and a couple of the button inputs but the new one is both smaller and more efficient at cooling Asus hasn't come out with a new cool 2 and I Gamepad controller for this generation but using the Rog clip you can connect the phone to something like an Xbox controller via Bluetooth now let's talk about the r G8 Pros display it's again a 6.78 incher with a 1080p resolution and a 165 HZ refresh rate but this time is an E6 OLED with ltpo tag this means that unlike on previous Rog phones the high refresh rate here is adaptive and dials down to 5 Hertz or even as low as 1 Herz when you're not interacting with the phone to save energy something else you'll notice about this display is that rather than having a large top bezel with a selfie cam embedded now there's a punch hole for that camera all the bezels are Slimmer resulting in a more modern look if you don't mind the cutout but for a gaming phone actually vessels are useful because they give you space to hold the phone while you're gaming Asus has finally done away with the notification LED as well instead there's a virtual notification indicator which lights up the display in the corner to show notification icons when it comes to the other aspects of this display it's solid it's sharp and contrasty with great color accuracy and support for hdr10 plus video content the brightness is quite impressive as well we measured a maximum of 830 nits with a manual brightness slider and this could boost over 1,700 nits in auto mode when exposed to direct light the audio system has also gone through some changes you still get a 3.5 mm headphone jack the stereo speakers are no longer front-facing and the sound is not as full or as Bassy as on the r Phone [Music] 7 awake [Music] you're I ese the downgrade isn't huge and the output sounds very good but in our test the R8 Pro doesn't get as loud as its predecessors for biometric input the phone has an optical underd display fingerprint read it's speedy and accurate and speaking of inputs the 8 Pro brings back the air trigger system but they've been downgraded compared to the previous Rog phones these sensors are no longer ultrasonic and while they recognize Taps they won't support inputs like long presses swipes or slides you do still get motion controls which are carried over just the same way they were on the previous generations gaming phones should have the best chipset performance around so it makes sense that the Rog Phone 8 Pro packs the newest snapdragon hn 3 it's also possible to get up to 24 gigs of lpddr 5x RAM and up to a terab of ufs 4.0 storage here the Snapdragon 8 gen 3 provides significantly better performance than the Snapdragon 8 Gen 2 you'd find in 2023 flagships and in The Benchmark charts the Rog Phone 8 Pro sits right up near the top it crushes every Benchmark we throw its way and these arbitrary numbers do translate into an excellent gaming experience in practice it's not just about the Peak Performance either the sustained performance and thermal management are just as important and the rogg Phone 8 Pro does a good job especially with the cooling fan attached without the fan the phone's passive cooling system is able to keep things steady for about 20 minutes before some aggressive thermal throttling kicks in the phone's rear panel also gets quite hot to the touch this happens slower if you have the X performance mode turn on but with the cooler attached the Rog Phone 8 Pro maintains good performance much longer and stays comfy to hold this is definitely the optimal way to game with this phone the user interface of the 8 Pro is quite similar to what we've seen from previous Rog phones except now it's running on top of the latest Android 14 Asus Promises at least two additional OS updates along with four years of security patches the X performance mode I mentioned earlier is found within the quick toggles something quite useful to have is a solid set of battery care features taking care of your battery longevity is important for a device like this one where you'd be gaming for long hours the phone has an in-depth overlay which you can call up in game called The Game Genie it includes feedback about performance as well as plenty of options to choose from one new feature is something called the AI Grabber it's able to recognize text from The Game's UI and then search the web for it that's convenient if you're stuck on something and need some tips there's also a dedicated space in which you can find more in-depth gaming settings called The Armory crate the first thing you'll see is a game library for all of your titles each title gets its own profile which can customize with various options but even further Beyond those you can dive into the advanced gaming tuning this gives you a way to change system level values for the phone's internals wild stuff and besides the customization for individual games there's a console tab through which you can create systemwide changes and get real-time performance data this is also where you'll find your options for the rear panel animations the aeroactive cooler Game Genie and air triggers the Rog Phone 8 Pro actually has a reduced batter battery capacity compared to previous generations is 5,500 mahs instead of 6,000 but even so the phone scored an awesome active use score of 14 hours and 43 minutes with great numbers across the board overall the performance is quite similar to the r Phone 7 Ultimate despite the difference in battery capacity Asus has been relying on 65 wat fast charging tech for some time now and it's pretty competitive The rlg Phone 8 pro charged from 0 to 80% in half an hour and a full charge took 42 minutes and this year there's support for wireless charging too rated at 15 watts the RG phones of the past didn't focus a whole lot on cameras but the RG Phone 8 Pro is a different story with this upgraded triple camera setup the 50 megap main cam has gimbal stabilization and a new sensor compared to last year then there's a brand new three times telephoto Cam and a 13 map Ultra wide cam the main camera captures 12.5 map photos by default due to pixel binning these have plenty of detail though fine details like foliage and grass aren't the most natural when viewed up close the colors do look nice and natural contrast could be better and you do end up with clipped highlights from time to time but it's not a major problem portrait shots look pretty decent they can come out at one times or two times zoom and they have good subject detection and separation the two times digital Zoom from the main cam looks pretty nice with a good amount of detail and good looking colors and somehow the contrast and highlights are better here the Rog Phone 8 Pro will trigger an auto a atic night mode when it detects low light conditions these photos come out decent but mostly unimpressive they have a good amount of detail even in Darker areas light sources are well contained and colors look mostly natural there is some softness and you can see plenty of visible noise in the frame you can also enable a dedicated night mode and it's able to clean up a lot of the noise details come out looking sharper light sources are handled a bit better too if you have the time and patience we would recommend going for the longer exposure dedicated night mode the main cam can capture video at up to 8K resolution at 24 FPS but of course the file size is huge at this resolution even in 4k videos recorded with the main cam are great with plenty of detail practically no noise and decently wide dynamic range unfortunately we once again see the low contrasty look that we had with the photos the main cam has Sixaxis gimbal stabilization and it works great in combination with electronic stabilization the lower level called adaptive e provides a balance between stabilization and field of view and it works in 4K resolution the higher level of stabilization is called Super Hyper steady it's really impressive at smoothing things out but there's a resolution cap of 1080P and a noticeably tighter field of view in low light the main camera records decent but mostly unremarkable footage the detail is there colors look good and light sources are handled well Shadows are dark though and there's visible noise in the frame the Rog Phone 8 Pro's telephoto camera produces produces 8 megap photos and they're very good sharpness is good and you also get nice contrast and dynamic range colors aren't a perfect match to the main camera though they're a bit warmer in low light with the auto night mode kicking in the telephoto cam shots come out kind of dark the parts of the frame that aren't too dark do still have plenty of detail though light sources are handled competently and colors look good though they still look warmer than the main cams enabling night mode with the long exposure setting on the telephoto doesn't do a whole lot the difference in brightness is negligible you can only do 1080p video capture on the telephoto camera is pretty good 1080p though with a surprising level of detail just like with Stills colors from the telephoto cam come out warmer than the other cameras 13 megapixel shots from the ultra wide camera are pretty nice with good overall detail and colors which match the main camera as well the contrast is again low but the corners are relatively sharp for this sort of camera here's what the ultra wide cam can do in low light with with the automatic night mode processing the results are decent there's plenty of detail and not a lot of noise and the dynamic range isn't too bad surfaces are a bit soft but that's expected manually enabling the night mode does brighten up the exposure a bit but the difference isn't drastic and otherwise the quality is about the same Ultra wide cam can record 4K videos and the quality is not very good there's enough detail but the corners are quite soft and just like with the photos the contrast is quite low and the new selfie cam is is 32 map and it has a wider field of view than the one in last year's model selfies come out at 8 megapixels and they have plenty of detail and good-looking skin tones so that's the Asus Rog Phone 8 Pro it definitely brings more mainstream appeal than its predecessors it's more Compact and subdued design-wise and it has proper ingress protection and wireless charging and last but not least the cameras have gotten a big upgrade there are some compromises though like the smaller battery the punch hole cut out on the display and downgrades in both the speakers and the air trigger capacitive controls still at its core the r Phone 8 Pro is a gaming Beast with excellent hardware and an industry-leading software package and if those few compromises are what it takes for more people to notice the Rog phone lineup and get one we won't argue with it only time will tell but this phone is well worth recommending thanks for watching guys if you're looking for an alternative gaming phone you can check out last year's generation through our reviews of the RG Phone 7 ultimate and a comparison between that and the vanilla Rog Phone 7 let us know what you think and I'll see you on the next one",
+          "comments": [
+            {
+              "id": "UgzLX3v8RnphWkBRa0l4AaABAg",
+              "author": "@hircine92h",
+              "text": "It looks boring design wise",
+              "likes": 0,
+              "published_at": "2024-09-30T13:58:15Z",
+              "replies": []
+            },
+            {
+              "id": "Ugz4KrqnLPoZiaiEhSZ4AaABAg",
+              "author": "@Foreverkatus",
+              "text": "Does anyone know if this has a better speaker and camera than the Iphone 14 Pro Max? thanks!",
+              "likes": 0,
+              "published_at": "2024-09-27T00:18:15Z",
+              "replies": []
+            },
+            {
+              "id": "UgyPoO_soOgt7_L0meF4AaABAg",
+              "author": "@alibabaei1953",
+              "text": "They could have gone to an all aluminum frame for better passive cooling, ofc no wireless charging but not a bad thing for a gaming phone. and also, widen those bezzles cause nobody plays with a phone case and narrow bezzles makes your palm do unwanted touches, either this or make a case that doesn&#39;t cover the back of the phone and include it in the box.",
+              "likes": 0,
+              "published_at": "2024-09-19T14:51:50Z",
+              "replies": []
+            },
+            {
+              "id": "Ugxb2kIegIU_shFO8zR4AaABAg",
+              "author": "@giuseppe7695",
+              "text": "So basically the Rog 7 is still the best one",
+              "likes": 0,
+              "published_at": "2024-09-16T10:28:48Z",
+              "replies": []
+            },
+            {
+              "id": "UgyKPCR-PYi24TQU25B4AaABAg",
+              "author": "@LyraniaLothar",
+              "text": "I&#39;m terribly late to this comment, but to me, this is a horrendous downgrade from the 7th. I&#39;m so incredibly mad that I lost my rog 7th. To date, it has been the only phone i have ever lost.<br><br>The punch camera is something i hate in modern phones. To add insult to injury, there are other gaming phones that have circumvented this issue by hiding the camera underneath the screen, I don&#39;t know how they did it, but they did.<br><br>Hopefully, the 9th will bring back the 7th style.",
+              "likes": 0,
+              "published_at": "2024-09-14T16:31:24Z",
+              "replies": []
+            }
+          ]
+        },
+        {
+          "author": "Booredatwork.com",
+          "id": "GYIsQg-o5HQ",
+          "title": "Asus ROG Phone 8 Pro Unboxing!",
+          "description": "",
+          "views": "2896815",
+          "likes": "192454",
+          "created_at": "2024-01-09T16:26:45Z",
+          "body": "Transcript not available",
+          "comments": [
+            {
+              "id": "UgzntZDcho5WlvPejch4AaABAg",
+              "author": "@pollachimad",
+              "text": "Hi give Rog 7 ultimate",
+              "likes": 0,
+              "published_at": "2024-09-30T09:33:38Z",
+              "replies": []
+            },
+            {
+              "id": "Ugwms-s0SKsZ49Hl1uB4AaABAg",
+              "author": "@TS_SHOJIB",
+              "text": "Bd price khoto",
+              "likes": 0,
+              "published_at": "2024-09-29T14:18:46Z",
+              "replies": []
+            },
+            {
+              "id": "Ugz4lHEmDIwYtl7Ce8V4AaABAg",
+              "author": "@channelnameless6983",
+              "text": "THIS PHONE SUCK",
+              "likes": 0,
+              "published_at": "2024-09-29T12:54:03Z",
+              "replies": []
+            },
+            {
+              "id": "Ugzv7izrhmILv6EnJeN4AaABAg",
+              "author": "@anastaciaebarial6402",
+              "text": "Bro is holding my dream phone😮",
+              "likes": 0,
+              "published_at": "2024-09-29T01:01:49Z",
+              "replies": []
+            },
+            {
+              "id": "UgyXhmBlWIsJ607M2x14AaABAg",
+              "author": "@jacksputrid",
+              "text": "100x more power than my switch has zero games that matter.",
+              "likes": 0,
+              "published_at": "2024-09-26T18:04:08Z",
+              "replies": []
+            }
+          ]
+        },
+        {
+          "author": "ROG Global",
+          "id": "f5vKxPA43lM",
+          "title": "2023 ROG Strix G16/18 - RAISE YOUR GAME. CARRY YOUR SQUAD.  | ROG",
+          "description": "Powered by a 13th Gen Intel® Core™ i9-13980HX processor and NVIDIA® GeForce RTX™ 4080 Laptop GPU with a max TGP of ...",
+          "views": "114384",
+          "likes": "1439",
+          "created_at": "2023-01-03T18:30:35Z",
+          "body": "Transcript not available",
+          "comments": [
+            {
+              "id": "Ugy-cnfUSAa1XoZnEFN4AaABAg",
+              "author": "@senubro2011",
+              "text": "rog my dad thinks that laptop dose nothing and he doesn&#39;t buy me one so<br>can you please send one free😢😢😢❤❤❤",
+              "likes": 0,
+              "published_at": "2024-09-16T21:54:36Z",
+              "replies": []
+            },
+            {
+              "id": "UgwEJ0ZP7-ndSwWezOp4AaABAg",
+              "author": "@HusanjonG",
+              "text": "which is better? tuf a16 or this with similar specs?",
+              "likes": 0,
+              "published_at": "2024-08-13T02:21:33Z",
+              "replies": []
+            },
+            {
+              "id": "UgyW3Ll1Qr_kd4lNx214AaABAg",
+              "author": "@gulamchikan",
+              "text": "<a href=\"https://www.youtube.com/shorts/6zeXc8NUI9U\">https://youtube.com/shorts/6zeXc8NUI9U?feature=shared</a>",
+              "likes": 0,
+              "published_at": "2024-06-30T10:09:13Z",
+              "replies": []
+            },
+            {
+              "id": "Ugz9jHAj9elym8cob-t4AaABAg",
+              "author": "@ZAAKI-JAY",
+              "text": "Rog g16 logo light have..?",
+              "likes": 0,
+              "published_at": "2024-05-28T06:15:54Z",
+              "replies": []
+            },
+            {
+              "id": "Ugxbjx8syk86nxa9xFt4AaABAg",
+              "author": "@EPIC-BLACK",
+              "text": "Ima Convince my dad to get this next year",
+              "likes": 1,
+              "published_at": "2023-11-07T18:22:14Z",
+              "replies": []
+            }
+          ]
+        },
+        {
+          "author": "Dave2D",
+          "id": "Qr0Xvw9cjCU",
+          "title": "The NEW Asus ROG Zephyrus G16 and G14",
+          "description": "First impressions before I review the Asus ROG Zephyrus G14 and G16 If you'd like to support the channel, consider a Dave2D ...",
+          "views": "756547",
+          "likes": "21574",
+          "created_at": "2024-01-09T00:01:39Z",
+          "body": "[Music] all right you guys are in for a treat these are the new Asus R zephrus G14 and g16 the small one and then a big one and the moment I can get the g16 in this Platinum white color the platinum silver color I'm switching this is going to be the device I'm going to be using so when I pulled these things out of the box I thought these are barely even recognizable as G14 and g16 like this is so different from the original product and so much more refined and elegant I was like this doesn't even look like a gaming laptop it's so clean so this device is in the Platinum white color way and then below here is the eclipse gray color way and The Branding is so subtle it's just lasered out on the corner here there's no more holographic badges like they've had in the past uh and then there's also this diagonal slash that runs through the devices this thing is I love it I love everything about it so it's like this reflective metal and if you get up close to it you'll notice that there's a series of slits that run along the length of this design accent and these light up there's a series of white LEDs underneath those slits and they shine through and it looks so cool the gray color already looks really nice but then the white sucker for white colored laptops so this is just it's on another level all right so the chassis on these devices so this is like an aluminum top panel but the chassis is also aluminum but this is milled out from one block that's very uncommon when it comes to gaming laptops the razor blades are made like that and it usually jacks up the production cost of these types of products but it's a single block of metal like gets machined out to make a very clean looking keyboard deck uh so we'll come back to this in a second I want to talk about the displays so both of these displays use OLED panels so they have OLED options this one is the 16in this one here is the 14in now OLED when it comes to gaming panels it's a it's a debate that's been going on for a while I personally think that OLED screens are the best panels you can possibly get for gaming content cre creation is a separate question but when it comes to just straight up gaming I love OLED it's got so many advantages it's got awesome colors fantastic contrast ratios because the black pixels are just straight up black but OLED panels do run the risk of having shorter lifespans because of OLED burning now on regular laptops like a productivity focused laptop I don't think OLED burning is a big issue because like you're not staring at the same thing for eight hours unchanging at Max brightness but on gaming laptops it is a risk right you're often in game for hours with unchanging UI elements like your health bar bar or like a mini map that just doesn't change for the entire duration of your gaming session and you're often at really high brightness those are the types of things that can cause burning on a traditional OLED panel but I asked Asus about theirs they stated that they have a lot of engineering time that's gone into these panels to prevent that kind of stuff they also have a screen saver that's like a pixel refreshing screen saver as well as some software tweaks that they recommend to preserve the health of these screens so hopefully it holds up because these are very nice screens now one thing I noticed on these panels actually it's with every OLED panel I've ever seen on a laptop the color accuracy and color gamut tends to shift the moment you play around with brightness right so if you really care about having color accurate workspaces I would lean toward like a regular IPS panel over the OLED technology that's on these uh but again they do offer these devices with regular like non OLED screens okay the keyboard I've grown used to this keyboard I've used it so much the one thing I dislike there's no print screen complain about it every years it's like four years now that I've been talking about this I don't know why there's still no print screen I use it all the time it's not the same as window shift s there's multiple applications out there that require a print screen you have to like rebind it it's great keyboard other than the lack of the print screen this trackpad is massive it's as big as you could possibly make it on this device right arguably too big because if I don't disable this trackpad before playing games sometimes I'll get some misclicks from my palm uh so the keyboard also lights up RGB lighting like you'd expect but on the left and right are some speakers and these speakers sound awesome like so much better than I would ever expected from a Windows gaming laptop so both the 16-in and the 14in have six speakers in them there's two that are in like this lower area there like a force cancelling set of them and then there's a tweeter that fires out the left and right uh speaker Grill now if you've seen any of my videos before I often rip on Windows laptops just having terrible speakers it's never made sense to me that they often suck these are way better and actually sound pretty close to what the MacBook Pros can put out in terms of audio quality okay let's talk about performance so these two products the uh G14 and g16 run two different chips this product here is running the 8000 series AMD chips these are running the new meteor Lake chips from Intel the core Ultra products both of these are very capable chips but they're not going to be as powerful as the top-of-the-line Intel chips but the thing to keep in mind is that on the RG zephyr's products these have always been about thin and light performance and it's so much better that Intel finally has a lower wattage but still high performance chip that can fit in here and power these systems very well while equipping it with high-end Nvidia GPU so the G14 can go up to an RTX 470 the g16 can go up to an RTX 490 now obviously not at full wattage these are thinner systems but there're still very powerful gaming laptops thermal performance and fan noise are already very good but because these are engineering samples they could actually get better at the retail launch uh battery life does have a pretty big battery 90 W hours the 14in has a 73 W hour battery but neither of these devices have replaceable Ram only the storage can be swapped out now in terms of charging it there's a new AC adapter plug for these devices and this is it here it's a proprietary adapter it is reversible so you can plug it right side up upside down but I think that since the bigger higher wat systems are 240 Watts at Max and the smaller one is 180 Watts you could have done this with USBC there is USBC power delivery 3.1 that can pump out 240 WTS I imagine the AC adapter for that thing would be very expensive compared to this right to be able to handle the right voltage it would have been more expensive but who wants a proprietary adapter another USC Port would have been awesome okay quick note about the ports uh there's two USPA two USC so that's the right side this is the left side uh so they also have HDMI and headphone jack on the left side but there is a couple differences because the bigger product is running the Intel chip this has Thunderbolt 4 so if you have Thunderbolt perals you need that in your workflow this one can do it the a the AMD product can't do it uh the other thing is the SD card slot so on the big one you have fulls sizee SD and on the little one you have only micro SD but there you have it G14 g16 these are so nice what do you think aren't these things awesome aren't these the best looking laptops you've ever laid your eyes on I mean come [Music] on",
+          "comments": [
+            {
+              "id": "Ugxrd8oNEfQhbTW9SsF4AaABAg",
+              "author": "@Dave2D",
+              "text": "These are SO AWESOME",
+              "likes": 779,
+              "published_at": "2024-01-09T00:03:28Z",
+              "replies": [
+                {
+                  "id": "Ugxrd8oNEfQhbTW9SsF4AaABAg.9zKT6OUJYTQ9zKU1LLvmN2",
+                  "author": "@daaood9996",
+                  "text": "True",
+                  "likes": 2,
+                  "published_at": "2024-01-09T00:11:31Z"
+                },
+                {
+                  "id": "Ugxrd8oNEfQhbTW9SsF4AaABAg.9zKT6OUJYTQ9zKUBDO4nV1",
+                  "author": "@daaood9996",
+                  "text": "I hate that they made them thinner though, will probably be bad for heat dissipation.",
+                  "likes": 7,
+                  "published_at": "2024-01-09T00:12:52Z"
+                },
+                {
+                  "id": "Ugxrd8oNEfQhbTW9SsF4AaABAg.9zKT6OUJYTQ9zKUFVZSYfI",
+                  "author": "@utkarsh1874",
+                  "text": "What tf is that ugly lid tho and 2012 power button",
+                  "likes": 8,
+                  "published_at": "2024-01-09T00:13:27Z"
+                },
+                {
+                  "id": "Ugxrd8oNEfQhbTW9SsF4AaABAg.9zKT6OUJYTQ9zKVBtny7JI",
+                  "author": "@timr.2257",
+                  "text": "No they look generic.",
+                  "likes": 14,
+                  "published_at": "2024-01-09T00:21:42Z"
+                },
+                {
+                  "id": "Ugxrd8oNEfQhbTW9SsF4AaABAg.9zKT6OUJYTQ9zKW4zsFQYN",
+                  "author": "@TheJjjoj",
+                  "text": "Hey, Dave, just checking, do they have a touchscreen option? I actually really use a touchscreen on my laptops all the time so it&#39;s an absolute requirement. The biggest problem with this line and with Razer for a while is the lack thereof.",
+                  "likes": 1,
+                  "published_at": "2024-01-09T00:29:30Z"
+                }
+              ]
+            },
+            {
+              "id": "UgzlcamlLkfmIlJvp-54AaABAg",
+              "author": "@RuralLifeKH",
+              "text": "why don&#39;t you mention screen wobble?",
+              "likes": 0,
+              "published_at": "2024-09-12T17:25:47Z",
+              "replies": []
+            },
+            {
+              "id": "UgzPC4Wk5Js6H94qpGl4AaABAg",
+              "author": "@Cooper3312000",
+              "text": "Speakers sound ok but muffled, highs are muddy bass ok on the G16 not even close to as good as my MacBook Pro 2017 15&quot;. Performance is lacking on the 4090 model it only connects at pcie 8x Gen3.0 a little disappointed ended up returning two systems. Gets about the same temperature as the Razer Blades very hot at the top of the keyboard burn your fingers hot. Screen is awesome other than the color shift and green hue on black screen. Just couldn&#39;t justify the price for the many faults but very close to being good. It&#39;s just so hard to switch from MacBooks when they are so well built but will be buying a new MacBook Pro to replace this machine.",
+              "likes": 1,
+              "published_at": "2024-09-10T23:34:07Z",
+              "replies": []
+            },
+            {
+              "id": "UgxfQvgUsI11Xd2vzKF4AaABAg",
+              "author": "@WalkingHeadPro",
+              "text": "ew asus, thing will break after one year",
+              "likes": 0,
+              "published_at": "2024-09-10T09:29:00Z",
+              "replies": []
+            },
+            {
+              "id": "UgxVnZ_EiawLJjEBl2B4AaABAg",
+              "author": "@Ghxst_101",
+              "text": "how about battery life ?",
+              "likes": 0,
+              "published_at": "2024-09-07T08:21:00Z",
+              "replies": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

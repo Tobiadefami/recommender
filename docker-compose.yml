@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./recommender/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./recommender:/app/recommender
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db/recommender_db
+      - REDDIT_APP_CLIENT_ID=${REDDIT_APP_CLIENT_ID}
+      - REDDIT_APP_CLIENT_SECRET=${REDDIT_APP_CLIENT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - NGINX_HOST=${NGINX_HOST}
+      - RECOMMENDER_ENV=${RECOMMENDER_ENVIRONMENT}
+
+    command: python -m uvicorn recommender.app:app --host 0.0.0.0 --port 8000 --reload
+
+    container_name: recommender_backend
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    container_name: recommender_frontend
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - ./nginx/default.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+      - frontend
+    container_name: recommender_nginx
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=recommender_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5900:5900"
+    hostname: db
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "user@domain.com"
+      PGADMIN_DEFAULT_PASSWORD: "SuperSecret"
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
