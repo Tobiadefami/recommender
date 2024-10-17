@@ -14,6 +14,7 @@ export default function Home() {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSuggestions(false);
+      setResults(null);
       await fetchResults(searchQuery);
     }
   };
@@ -21,6 +22,7 @@ export default function Home() {
   const handleSuggestionSelect = async (suggestion: string) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
+    setResults(null);
     await fetchResults(suggestion);
   };
 
@@ -42,6 +44,12 @@ export default function Home() {
     setShowSuggestions(true);
   };
 
+  const handleClearSuggestions = () => {
+    setSearchQuery("");
+    setResults(null);
+    setShowSuggestions(true);
+  };
+
   const recentSearches = [
     { title: "Product Review Search Interface", daysAgo: 2 },
     { title: "Company Registration Number Inquiry", daysAgo: 3 },
@@ -57,11 +65,7 @@ export default function Home() {
       onSuggestionSelect={handleSuggestionSelect}
       recentSearches={recentSearches}
       onViewAllSearches={() => console.log("View all searches")}
-      onClearSuggestions={() => {
-        setSearchQuery("");
-        setResults(null);
-        setShowSuggestions(true);
-      }}
+      onClearSuggestions={handleClearSuggestions}
       results={results}
       loading={loading}
       showSuggestions={showSuggestions}
