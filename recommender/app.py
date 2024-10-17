@@ -108,11 +108,11 @@ async def authorize_callback(request: Request):
     refresh_token = await reddit.auth.authorize(code)
     save_refresh_token(refresh_token)
     print("user authenticated!")
-    return RedirectResponse(url="/search")
+    return RedirectResponse(url="/")
 
 
 @app.get("/search/{search_query}")
-async def search(search_query: str, limit: int = 5, batch_size: int = 20):
+async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     refresh_token = load_refresh_token()
     if not refresh_token:
         return {"error": "User not authenticated."}

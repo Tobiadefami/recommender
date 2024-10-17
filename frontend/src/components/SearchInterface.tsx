@@ -5,6 +5,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import Autocomplete from "./Autocomplete";
 import getGreeting from "@/lib/greeting";
 import { SearchResult } from "@/types/search";
+import SearchResults from "./SearchResults";
 
 interface SearchInterfaceProps {
   userName: string;
@@ -95,65 +96,7 @@ export default function SearchInterface({
 
         {loading && <div className="text-center mt-8">Loading...</div>}
 
-        {results && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
-
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-2">Overall Decision</h3>
-              <p>{results.overall_decision}</p>
-            </div>
-
-            <h3 className="text-xl font-semibold mb-4">Reviews</h3>
-            {results.reviews.map((review, index) => (
-              <div key={index} className="mb-6 p-4 bg-card rounded-lg">
-                <h4 className="text-lg font-semibold mb-2">
-                  {review.product_name}
-                </h4>
-                <p className="mb-2">
-                  <strong>Source:</strong> {review.source}
-                </p>
-                <p className="mb-3">{review.review_summary}</p>
-
-                {review.pros && review.pros.length > 0 && (
-                  <div className="mb-2">
-                    <strong>Pros:</strong>
-                    <ul className="list-disc list-inside">
-                      {review.pros.map((pro, i) => (
-                        <li key={i}>{pro}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {review.cons && review.cons.length > 0 && (
-                  <div className="mb-2">
-                    <strong>Cons:</strong>
-                    <ul className="list-disc list-inside">
-                      {review.cons.map((con, i) => (
-                        <li key={i}>{con}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <p>
-                  <strong>Sentiment:</strong> {review.sentiment}
-                </p>
-                <p>
-                  <strong>Detail Score:</strong> {review.detail_score}
-                </p>
-                <p>
-                  <strong>Balanced Score:</strong> {review.balanced_score}
-                </p>
-                <p>
-                  <strong>Well Written Score:</strong>{" "}
-                  {review.well_written_score}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+        {results && <SearchResults results={results} />}
 
         {!results && !loading && (
           <>
