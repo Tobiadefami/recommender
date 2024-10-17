@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from recommender.auto_complete import autocomplete, old_queries
 from recommender.database import init_db
 from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.process_submissions import (
@@ -23,9 +24,7 @@ CLIENT_SECRET = os.environ.get("REDDIT_APP_CLIENT_SECRET")
 NGINX_HOST = os.getenv("NGINX_HOST")
 RECOMMENDER_ENV = os.getenv("RECOMMENDER_ENV", "development")
 PROTOCOL = "http" if RECOMMENDER_ENV == "development" else "https"
-print(f"{PROTOCOL=}")
 REDIRECT_URI = f"{PROTOCOL}://{NGINX_HOST}/api/authorize_callback"
-print(f"{REDIRECT_URI=}")
 USER_AGENT = "web:product-review-app:v1.0 (by /u/tobiadefami)"
 
 STATE = secrets.token_urlsafe(16)
@@ -81,8 +80,13 @@ async def home():
 
 
 @app.get("/autocomplete")
-def auto_complete(query: str, queries_db=None):
-    return auto_complete(query, queries_db)
+def auto_complete(query: str, queries_db=old_queries):
+    return autocomplete(query, queries_db)
+
+
+@app.get("/recent_searches")
+def recent_searches():
+    pass
 
 
 @app.get("/authorize")
@@ -104,11 +108,11 @@ async def authorize_callback(request: Request):
     refresh_token = await reddit.auth.authorize(code)
     save_refresh_token(refresh_token)
     print("user authenticated!")
-    return RedirectResponse(url="/search")
+    return RedirectResponse(url="/")
 
 
 @app.get("/search/{search_query}")
-async def search(search_query: str, limit: int = 5, batch_size: int = 20):
+async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     refresh_token = load_refresh_token()
     if not refresh_token:
         return {"error": "User not authenticated."}
