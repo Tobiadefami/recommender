@@ -8,16 +8,19 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       await fetchResults(searchQuery);
     }
   };
 
   const handleSuggestionSelect = async (suggestion: string) => {
     setSearchQuery(suggestion);
+    setShowSuggestions(false);
     await fetchResults(suggestion);
   };
 
@@ -34,6 +37,11 @@ export default function Home() {
     }
   };
 
+  const handleSearchQueryChange = (query: string) => {
+    setSearchQuery(query);
+    setShowSuggestions(true);
+  };
+
   const recentSearches = [
     { title: "Product Review Search Interface", daysAgo: 2 },
     { title: "Company Registration Number Inquiry", daysAgo: 3 },
@@ -44,7 +52,7 @@ export default function Home() {
     <SearchInterface
       userName="John"
       searchQuery={searchQuery}
-      onSearchQueryChange={setSearchQuery}
+      onSearchQueryChange={handleSearchQueryChange}
       onSubmit={handleSubmit}
       onSuggestionSelect={handleSuggestionSelect}
       recentSearches={recentSearches}
@@ -52,9 +60,11 @@ export default function Home() {
       onClearSuggestions={() => {
         setSearchQuery("");
         setResults(null);
+        setShowSuggestions(true);
       }}
       results={results}
       loading={loading}
+      showSuggestions={showSuggestions}
     />
   );
 }

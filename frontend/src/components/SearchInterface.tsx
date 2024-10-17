@@ -17,6 +17,7 @@ interface SearchInterfaceProps {
   onClearSuggestions: () => void;
   results: SearchResult | null;
   loading: boolean;
+  showSuggestions: boolean;
 }
 
 export default function SearchInterface({
@@ -30,6 +31,7 @@ export default function SearchInterface({
   onClearSuggestions,
   results,
   loading,
+  showSuggestions,
 }: SearchInterfaceProps) {
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
@@ -41,24 +43,40 @@ export default function SearchInterface({
       </header>
 
       <main className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-light mb-6">{getGreeting()}, {userName}</h2>
+        <h2 className="text-3xl font-light mb-6">
+          {getGreeting()}, {userName}
+        </h2>
         <form onSubmit={onSubmit} className="bg-card rounded-lg p-4 mb-8">
           <Autocomplete
             value={searchQuery}
             onChange={onSearchQueryChange}
             onSuggestionSelect={onSuggestionSelect}
+            onSubmit={onSubmit}
+            showSuggestions={showSuggestions}
           />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Get started with an example below</span>
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
-            <Button variant="secondary" size="sm" onClick={() => onSearchQueryChange("Pixel 7 pro")}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onSearchQueryChange("Pixel 7 pro")}
+            >
               Pixel 7 pro
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => onSearchQueryChange("Porsche taycan")}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onSearchQueryChange("Porsche taycan")}
+            >
               Porsche taycan
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => onSearchQueryChange("Sony a7s iii")}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onSearchQueryChange("Sony a7s iii")}
+            >
               Sony a7s iii
             </Button>
             <Button
@@ -80,7 +98,7 @@ export default function SearchInterface({
         {results && (
           <div className="mt-8">
             <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
-            
+
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-2">Overall Decision</h3>
               <p>{results.overall_decision}</p>
@@ -89,8 +107,12 @@ export default function SearchInterface({
             <h3 className="text-xl font-semibold mb-4">Reviews</h3>
             {results.reviews.map((review, index) => (
               <div key={index} className="mb-6 p-4 bg-card rounded-lg">
-                <h4 className="text-lg font-semibold mb-2">{review.product_name}</h4>
-                <p className="mb-2"><strong>Source:</strong> {review.source}</p>
+                <h4 className="text-lg font-semibold mb-2">
+                  {review.product_name}
+                </h4>
+                <p className="mb-2">
+                  <strong>Source:</strong> {review.source}
+                </p>
                 <p className="mb-3">{review.review_summary}</p>
 
                 {review.pros && review.pros.length > 0 && (
@@ -115,10 +137,19 @@ export default function SearchInterface({
                   </div>
                 )}
 
-                <p><strong>Sentiment:</strong> {review.sentiment}</p>
-                <p><strong>Detail Score:</strong> {review.detail_score}</p>
-                <p><strong>Balanced Score:</strong> {review.balanced_score}</p>
-                <p><strong>Well Written Score:</strong> {review.well_written_score}</p>
+                <p>
+                  <strong>Sentiment:</strong> {review.sentiment}
+                </p>
+                <p>
+                  <strong>Detail Score:</strong> {review.detail_score}
+                </p>
+                <p>
+                  <strong>Balanced Score:</strong> {review.balanced_score}
+                </p>
+                <p>
+                  <strong>Well Written Score:</strong>{" "}
+                  {review.well_written_score}
+                </p>
               </div>
             ))}
           </div>
