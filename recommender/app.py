@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from recommender.auto_complete import autocomplete, old_queries
+from recommender.auto_complete import autocomplete
 from recommender.database import init_db
 from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.process_submissions import (
@@ -17,6 +17,7 @@ from recommender.process_submissions import (
     process_submissions,
 )
 from recommender.save_data import (
+    get_existing_search_queries,
     load_structured_output,
     save_data,
     save_structured_output,
@@ -84,8 +85,10 @@ async def home():
 
 
 @app.get("/autocomplete")
-def auto_complete(query: str, queries_db=old_queries):
-    return autocomplete(query, queries_db)
+def auto_complete(query: str):
+    existing_queries = get_existing_search_queries()
+
+    return autocomplete(query, existing_queries)
 
 
 @app.get("/recent_searches")
@@ -118,7 +121,6 @@ async def authorize_callback(request: Request):
 @app.get("/search/{search_query}")
 async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     refresh_token = load_refresh_token()
-
 
     if not refresh_token:
         return {"error": "User not authenticated."}

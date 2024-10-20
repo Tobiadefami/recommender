@@ -134,5 +134,19 @@ def load_structured_output(search_query: str):
         db.close()
 
 
+def get_existing_search_queries():
+    db: Session = next(get_db())
+    try:
+        queries = db.query(StructuredOutput.search_query).distinct().all()
+        return [query[0] for query in queries]
+    except Exception as e:
+        logger.error(
+            f"Error fetching existing search queries: {e}", exc_info=True
+        )
+        return []
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     init_db()
