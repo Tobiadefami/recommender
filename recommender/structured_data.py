@@ -7,6 +7,7 @@ class ProductReviewAnalysis(BaseModel):
     source: str = Field(
         description="The source of the review (reddit or youtube)"
     )
+    url: str = Field(description="The URL of the post or comment")
     product_name: Optional[str] = Field(
         description="The name of the product being reviewed, if applicable"
     )

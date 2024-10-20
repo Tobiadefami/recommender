@@ -45,7 +45,7 @@ async def process_submission(
 ):
     # load the submission to ensure that the comments are available
     await submission.load()
-    
+
     processed_comments = await process_comments(
         submission.comments,
         max_depth=max_comment_depth,
@@ -54,15 +54,14 @@ async def process_submission(
         recent_days=recent_days,
     )
 
-
     return {
-        'user': submission.author.name if submission.author else '[deleted]',
-        'id': submission.id,
-        'title': submission.title,
-        'score': submission.score,
-        'url': submission.url,
-        'num_comments': submission.num_comments,
-        'created': submission.created,
-        'body': submission.selftext,
-        'comments': processed_comments,
+        "user": submission.author.name if submission.author else "[deleted]",
+        "id": submission.id,
+        "title": submission.title,
+        "score": submission.score,
+        "url": submission.url,
+        "num_comments": submission.num_comments,
+        "created": submission.created,
+        "body": submission.selftext,
+        "comments": processed_comments,
     }

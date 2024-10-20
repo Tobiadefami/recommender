@@ -16,7 +16,11 @@ from recommender.process_submissions import (
     process_submission,
     process_submissions,
 )
-from recommender.save_data import save_data, save_structured_output
+from recommender.save_data import (
+    load_structured_output,
+    save_data,
+    save_structured_output,
+)
 from recommender.structured_output import process_all_posts
 
 CLIENT_ID = os.environ.get("REDDIT_APP_CLIENT_ID")
@@ -114,8 +118,14 @@ async def authorize_callback(request: Request):
 @app.get("/search/{search_query}")
 async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     refresh_token = load_refresh_token()
+
+
     if not refresh_token:
         return {"error": "User not authenticated."}
+
+    existing_result = load_structured_output(search_query)
+    if existing_result is not None:
+        return existing_result
 
     youtube_data_futures = search_youtube_videos(
         search_query, max_results=limit

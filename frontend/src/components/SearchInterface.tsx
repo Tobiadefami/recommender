@@ -6,6 +6,7 @@ import Autocomplete from "./Autocomplete";
 import getGreeting from "@/lib/greeting";
 import { SearchResult } from "@/types/search";
 import SearchResults from "./SearchResults";
+import LoadingCard from "./LoadingCard";
 
 interface SearchInterfaceProps {
   userName: string;
@@ -94,7 +95,14 @@ export default function SearchInterface({
           </Button>
         </form>
 
-        {loading && <div className="text-center mt-8">Loading...</div>}
+        {loading && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold mb-4">Fetching Results...</h2>
+            <LoadingCard />
+            <LoadingCard />
+            <LoadingCard />
+          </div>
+        )}
 
         {results && <SearchResults results={results} />}
 
