@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 
 import aiohttp
@@ -8,7 +7,9 @@ from youtube_transcript_api import YouTubeTranscriptApi
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 
-async def fetch_comment_replies(session, parent_id, max_replies=5):
+async def fetch_comment_replies(
+    session: aiohttp.ClientSession, parent_id: str, max_replies: int = 5
+):
     replies_url = f"https://www.googleapis.com/youtube/v3/comments?part=snippet&parentId={parent_id}&maxResults={max_replies}&key={YOUTUBE_API_KEY}"
     async with session.get(replies_url) as response:
         replies_response = await response.json()
@@ -23,13 +24,17 @@ async def fetch_comment_replies(session, parent_id, max_replies=5):
                 "text": reply["textDisplay"],
                 "likes": reply["likeCount"],
                 "published_at": reply["publishedAt"],
+                "url": f"https://www.youtube.com/watch?v={reply['videoId']}&lc={item['id']}",
             }
         )
     return replies
 
 
 async def fetch_video_comments(
-    session, video_id, max_comments=5, max_replies=5
+    session: aiohttp.ClientSession,
+    video_id: str,
+    max_comments: int = 5,
+    max_replies: int = 5,
 ):
     comments_url = f"https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId={video_id}&maxResults={max_comments}&key={YOUTUBE_API_KEY}"
     async with session.get(comments_url) as response:
@@ -44,6 +49,7 @@ async def fetch_video_comments(
             "text": comment["textDisplay"],
             "likes": comment["likeCount"],
             "published_at": comment["publishedAt"],
+            "url": f"https://www.youtube.com/watch?v={video_id}&lc={item['id']}",
             "replies": [],
         }
 
@@ -60,6 +66,7 @@ async def fetch_video_comments(
                             "text": reply_snippet["textDisplay"],
                             "likes": reply_snippet["likeCount"],
                             "published_at": reply_snippet["publishedAt"],
+                            "url": f"https://www.youtube.com/watch?v={video_id}&lc={reply['id']}",
                         }
                     )
             else:
@@ -69,11 +76,15 @@ async def fetch_video_comments(
                 )
 
         comments.append(comment_data)
+        print(comments[-1]["url"])
     return comments
 
 
 async def search_youtube_videos(
-    query="pixel phone reviews", max_results=5, max_comments=5, max_replies=5
+    query: str = "pixel phone reviews",
+    max_results: int = 5,
+    max_comments: int = 5,
+    max_replies: int = 5,
 ):
     async with aiohttp.ClientSession() as session:
         try:
@@ -125,9 +136,10 @@ async def search_youtube_videos(
                         "created_at": created_at,
                         "body": transcript_text,
                         "comments": comments,
+                        "url": f"https://www.youtube.com/watch?v={video_id}",
                     }
                 )
-
+                print(videos[-1]["url"])
             return videos
 
         except Exception as e:
@@ -135,24 +147,5 @@ async def search_youtube_videos(
             return []
 
 
-async def save_data(output_dir="recommender/data", query="pixel phone reviews"):
-    output_path = os.path.join(output_dir, "youtube_data2.json")
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
-
-    results = await search_youtube_videos(query)
-    existing_data = {}
-    if os.path.exists(output_path):
-        with open(output_path, "r") as f:
-            existing_data = json.load(f)
-
-    existing_data.update(results)
-
-    with open(output_path, "w") as f:
-        json.dump(existing_data, f, indent=4)
-
-    return existing_data
-
-
 if __name__ == "__main__":
-    asyncio.run(save_data())
+    asyncio.run(search_youtube_videos())

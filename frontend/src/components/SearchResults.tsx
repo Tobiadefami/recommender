@@ -10,7 +10,19 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
   <div className="bg-card shadow-md rounded-lg p-6 mb-4">
     <h3 className="text-xl font-semibold mb-2">{review.product_name}</h3>
     <p className="text-sm text-muted-foreground mb-3">
-      Source: {review.source}
+      Source:{" "}
+      {review.url ? (
+        <a
+          href={review.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:underline"
+        >
+          {review.source}
+        </a>
+      ) : (
+        review.source
+      )}
     </p>
     <p className="mb-4">{review.review_summary}</p>
 
@@ -18,21 +30,25 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
       <div>
         <h4 className="font-semibold mb-2">Pros</h4>
         <ul className="list-disc list-inside">
-          {review.pros?.map((pro, index) => (
-            <li key={index} className="text-sm">
-              {pro}
-            </li>
-          ))}
+          {review.pros &&
+            Array.isArray(review.pros) &&
+            review.pros.map((pro, index) => (
+              <li key={index} className="text-sm">
+                {pro}
+              </li>
+            ))}
         </ul>
       </div>
       <div>
         <h4 className="font-semibold mb-2">Cons</h4>
         <ul className="list-disc list-inside">
-          {review.cons?.map((con, index) => (
-            <li key={index} className="text-sm">
-              {con}
-            </li>
-          ))}
+          {review.cons &&
+            Array.isArray(review.cons) &&
+            review.cons.map((con, index) => (
+              <li key={index} className="text-sm">
+                {con}
+              </li>
+            ))}
         </ul>
       </div>
     </div>
@@ -66,9 +82,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
         <p>{results.overall_decision}</p>
       </div>
       <h3 className="text-xl font-semibold mb-4">Reviews</h3>
-      {results.reviews.map((review, index) => (
-        <ReviewCard key={index} review={review} />
-      ))}
+      {results.reviews.map((review, index) => {
+        console.log(review.pros);
+        return <ReviewCard key={index} review={review} />;
+      })}
     </div>
   );
 };

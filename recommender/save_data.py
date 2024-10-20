@@ -126,7 +126,7 @@ def load_structured_output(search_query: str):
         structured_output = (
             db.query(StructuredOutput)
             .filter(StructuredOutput.search_query == search_query)
-            .order_by(StructuredOutput.created_at.desc())
+            .order_by(StructuredOutput.id.desc())
             .first()
         )
         return structured_output.data if structured_output else None

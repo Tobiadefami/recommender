@@ -27,20 +27,18 @@ async def process_comments(
                 "body": comment.body,
                 "score": comment.score,
                 "created": comment.created,
+                "url": f"https://www.reddit.com{comment.permalink}",
                 "replies": [],
             }
 
-            comment_date = datetime.fromtimestamp(
-                comment.created_utc
-            )
+            comment_date = datetime.fromtimestamp(comment.created_utc)
 
             if (
                 comment.score >= score_threshold
                 and len(comment.body) >= min_length
                 and (
                     not recent_days
-                    or (current_time - comment_date).days
-                    <= recent_days
+                    or (current_time - comment_date).days <= recent_days
                 )
             ):
                 comment_data["replies"] = await process_comments(

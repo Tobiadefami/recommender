@@ -60,6 +60,7 @@ def convert_to_dict(review_analysis: AllReviewAnalysis) -> dict[str, Any]:
                 "detail_score": review.detail_score,
                 "balanced_score": review.balanced_score,
                 "well_written_score": review.well_written_score,
+                "url": review.url,
             }
             for review in review_analysis.reviews
         ],
