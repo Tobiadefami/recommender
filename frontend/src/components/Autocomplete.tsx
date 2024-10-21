@@ -16,25 +16,26 @@ export default function Autocomplete({
   onChange,
   onSuggestionSelect,
   onSubmit,
-  showSuggestions,
+  showSuggestions: initialShowSuggestions,
 }: AutocompleteProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const [internalShowSuggestions, setInternalShowSuggestions] = useState(
+    initialShowSuggestions,
+  );
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    if (value.length > 1) {
+    if (value.length > 1 && internalShowSuggestions) {
       fetchSuggestions();
     } else {
       setSuggestions([]);
     }
-  }, [value]);
+  }, [value, internalShowSuggestions]);
 
   useEffect(() => {
-    if (!showSuggestions) {
-      setFocusedIndex(-1);
-    }
-  }, [showSuggestions]);
+    setInternalShowSuggestions(initialShowSuggestions);
+  }, [initialShowSuggestions]);
 
   const fetchSuggestions = async () => {
     try {
@@ -49,7 +50,8 @@ export default function Autocomplete({
 
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionSelect(suggestion);
-    setSuggestions([]); // Clear suggestions after selecting one
+    setSuggestions([]);
+    setInternalShowSuggestions(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -62,7 +64,8 @@ export default function Autocomplete({
       }
       setSuggestions([]);
       setFocusedIndex(-1);
-    } else if (e.key == "ArrowDown") {
+      setInternalShowSuggestions(false);
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setFocusedIndex((prevIndex) =>
         prevIndex < suggestions.length - 1 ? prevIndex + 1 : prevIndex,
@@ -70,6 +73,19 @@ export default function Autocomplete({
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setFocusedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : -1));
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setSuggestions([]);
+      setFocusedIndex(-1);
+      setInternalShowSuggestions(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    if (newValue.length > 1) {
+      setInternalShowSuggestions(true);
     }
   };
 
@@ -88,10 +104,10 @@ export default function Autocomplete({
         className="bg-transparent border-none text-lg placeholder-muted-foreground mb-4"
         placeholder="Iphone 16 pro max"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleInputChange}
         onKeyDown={handleKeyDown}
       />
-      {showSuggestions && suggestions.length > 0 && (
+      {internalShowSuggestions && suggestions.length > 0 && (
         <ul
           ref={suggestionsRef}
           className="absolute w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-y-auto"
