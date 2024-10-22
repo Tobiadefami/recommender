@@ -1,10 +1,24 @@
 // recommender/frontend/src/components/SearchResults.tsx
 import React from "react";
 import { SearchResult, Review } from "@/types/search";
+import { ThumbsUp, ThumbsDown, Meh } from "lucide-react";
 
 interface SearchResultsProps {
   results: SearchResult;
 }
+
+const SentimentIcon: React.FC<{ sentiment: string }> = ({ sentiment }) => {
+  switch (sentiment.toLowerCase()) {
+    case "positive":
+      return <ThumbsUp className="inline-block text-green-500" />;
+    case "negative":
+      return <ThumbsDown className="inline-block text-red-500" />;
+    case "neutral":
+      return <Meh className="inline-block text-yellow-500" />;
+    default:
+      return null;
+  }
+};
 
 const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
   <div className="bg-card shadow-md rounded-lg p-6 mb-4">
@@ -55,7 +69,8 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
 
     <div className="grid grid-cols-2 gap-4 text-sm">
       <p>
-        <span className="font-semibold">Sentiment:</span> {review.sentiment}
+        <span className="font-semibold">Sentiment:</span>{" "}
+        <SentimentIcon sentiment={review.sentiment} />
       </p>
       <p>
         <span className="font-semibold">Detail Score:</span>{" "}
