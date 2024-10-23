@@ -21,6 +21,7 @@ export interface Comment {
   text: string;
   url: string;
 }
+
 export interface SearchResult {
   reviews: Review[];
   overall_decision: string;

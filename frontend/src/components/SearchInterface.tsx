@@ -35,6 +35,7 @@ export default function SearchInterface({
   loading,
   showSuggestions,
 }: SearchInterfaceProps) {
+  const now = new Date();
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
       <header className="mb-8 flex justify-between items-center">
@@ -46,7 +47,7 @@ export default function SearchInterface({
 
       <main className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-light mb-6">
-          {getGreeting()}, {userName}
+          {getGreeting(now)}, {userName}
         </h2>
         <form onSubmit={onSubmit} className="bg-card rounded-lg p-4 mb-8">
           <Autocomplete

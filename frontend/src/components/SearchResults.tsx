@@ -7,6 +7,37 @@ interface SearchResultsProps {
   results: SearchResult;
 }
 
+const getScoreColor = (score: number): string => {
+  if (score <= 1) return "bg-red-500";
+  if (score <= 2) return "bg-orange-500";
+  if (score <= 3) return "bg-yellow-500";
+  if (score <= 4) return "bg-lime-500";
+  return "bg-green-500";
+};
+
+const ScoreBar: React.FC<{ score: number; label: string }> = ({
+  score,
+  label,
+}) => {
+  const percentage = (score / 10) * 100; // Assuming the score is out of 5
+  const colorClass = getScoreColor(score);
+
+  return (
+    <div className="mb-2">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm font-medium">{score.toFixed(1)}</span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+        <div
+          className={`${colorClass} h-2.5 rounded-full transition-all duration-300`}
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
 const SentimentIcon: React.FC<{ sentiment: string }> = ({ sentiment }) => {
   switch (sentiment.toLowerCase()) {
     case "positive":
@@ -83,22 +114,15 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
       </div>
     </div>
 
-    <div className="grid grid-cols-2 gap-4 text-sm">
+    <div className="mt-4">
+      <ScoreBar score={review.detail_score} label="Detail Score" />
+      <ScoreBar score={review.balanced_score} label="Balanced Score" />
+      <ScoreBar score={review.well_written_score} label="Well Written Score" />
+    </div>
+    <div className="mt-4 text-sm">
       <p>
         <span className="font-semibold">Sentiment:</span>{" "}
-        <SentimentIcon sentiment={review.sentiment} />
-      </p>
-      <p>
-        <span className="font-semibold">Detail Score:</span>{" "}
-        {review.detail_score}
-      </p>
-      <p>
-        <span className="font-semibold">Balanced Score:</span>{" "}
-        {review.balanced_score}
-      </p>
-      <p>
-        <span className="font-semibold">Well Written Score:</span>{" "}
-        {review.well_written_score}
+        {review.sentiment && <SentimentIcon sentiment={review.sentiment} />}
       </p>
     </div>
   </div>
