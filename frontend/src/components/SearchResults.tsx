@@ -1,7 +1,7 @@
 // recommender/frontend/src/components/SearchResults.tsx
 import React from "react";
 import { SearchResult, Review } from "@/types/search";
-import { ThumbsUp, ThumbsDown, Meh } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Meh, Star } from "lucide-react";
 
 interface SearchResultsProps {
   results: SearchResult;
@@ -20,9 +20,25 @@ const SentimentIcon: React.FC<{ sentiment: string }> = ({ sentiment }) => {
   }
 };
 
+const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
+  return (
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`w-4 h-4 ${star <= rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+        />
+      ))}
+    </div>
+  );
+};
+
 const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
   <div className="bg-card shadow-md rounded-lg p-6 mb-4">
-    <h3 className="text-xl font-semibold mb-2">{review.product_name}</h3>
+    <div className="flex justify-between items-start mb-2">
+      <h3 className="text-xl font-semibold mb-2">{review.product_name}</h3>
+      <StarRating rating={review.star_rating} />{" "}
+    </div>
     <p className="text-sm text-muted-foreground mb-3">
       Source:{" "}
       {review.url ? (

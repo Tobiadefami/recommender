@@ -28,8 +28,7 @@ class ProductReviewAnalysis(BaseModel):
 
     detail_score: int = Field(
         description=(
-            "The detail score of the review from 0-10 (0 means the review is poorly"
-            " detailed and 10 means it is very well detailed), if it is a product review"
+            "The detail score of the review from 0-10 (0 means the review is poorly detailed and 10 means it is very well detailed), if it is a product review"
         )
     )
     balanced_score: int = Field(
@@ -44,6 +43,9 @@ class ProductReviewAnalysis(BaseModel):
             " if it is a product review"
         )
     )
+    star_rating: Optional[int] = Field(
+        description="Provide a star rating on the product based on the user review"
+    )
 
 
 class AllReviewAnalysis(BaseModel):
@@ -52,5 +54,5 @@ class AllReviewAnalysis(BaseModel):
     )
     overall_decision: str = Field(
         description="Use the data obtained from the product review analysis to provide a well detailed and an unbiased decision on whether the product is good to buy or not."
-        " List the top pros and cons, comments and replies that have the best review scores."
+        " after evaluating all the reviews, provide an aggregate on the sentiment of the reviews and also provide an aggregate of the pros and cons of the product."
     )
