@@ -1,7 +1,16 @@
 // recommender/frontend/src/components/SearchResults.tsx
-import React from "react";
+import React, { useState } from "react";
 import { SearchResult, Review } from "@/types/search";
-import { ThumbsUp, ThumbsDown, Meh, Star } from "lucide-react";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Meh,
+  Star,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 interface SearchResultsProps {
   results: SearchResult;
@@ -64,69 +73,96 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
   );
 };
 
-const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
-  <div className="bg-card shadow-md rounded-lg p-6 mb-4">
-    <div className="flex justify-between items-start mb-2">
-      <h3 className="text-xl font-semibold mb-2">{review.product_name}</h3>
-      <StarRating rating={review.star_rating} />{" "}
-    </div>
-    <p className="text-sm text-muted-foreground mb-3">
-      Source:{" "}
-      {review.url ? (
-        <a
-          href={review.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {review.source}
-        </a>
-      ) : (
-        review.source
-      )}
-    </p>
-    <p className="mb-4">{review.review_summary}</p>
-
-    <div className="grid grid-cols-2 gap-4 mb-4">
-      <div>
-        <h4 className="font-semibold mb-2">Pros</h4>
-        <ul className="list-disc list-inside">
-          {review.pros &&
-            Array.isArray(review.pros) &&
-            review.pros.map((pro, index) => (
-              <li key={index} className="text-sm">
-                {pro}
-              </li>
-            ))}
-        </ul>
+const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="bg-card shadow-md rounded-lg p-6 mb-4">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="text-xl font-semibold mb-2">{review.product_name}</h3>
+        <StarRating rating={review.star_rating} />{" "}
       </div>
-      <div>
-        <h4 className="font-semibold mb-2">Cons</h4>
-        <ul className="list-disc list-inside">
-          {review.cons &&
-            Array.isArray(review.cons) &&
-            review.cons.map((con, index) => (
-              <li key={index} className="text-sm">
-                {con}
-              </li>
-            ))}
-        </ul>
-      </div>
-    </div>
-
-    <div className="mt-4">
-      <ScoreBar score={review.detail_score} label="Detail Score" />
-      <ScoreBar score={review.balanced_score} label="Balanced Score" />
-      <ScoreBar score={review.well_written_score} label="Well Written Score" />
-    </div>
-    <div className="mt-4 text-sm">
-      <p>
-        <span className="font-semibold">Sentiment:</span>{" "}
-        {review.sentiment && <SentimentIcon sentiment={review.sentiment} />}
+      <p className="text-sm text-muted-foreground mb-3">
+        Source:{" "}
+        {review.url ? (
+          <a
+            href={review.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            {review.source}
+          </a>
+        ) : (
+          review.source
+        )}
       </p>
+      <p className="mb-4">{review.review_summary}</p>
+
+      {expanded && (
+        <>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <h4 className="font-semibold mb-2">Pros</h4>
+              <ul className="list-disc list-inside">
+                {review.pros &&
+                  Array.isArray(review.pros) &&
+                  review.pros.map((pro, index) => (
+                    <li key={index} className="text-sm">
+                      {pro}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Cons</h4>
+              <ul className="list-disc list-inside">
+                {review.cons &&
+                  Array.isArray(review.cons) &&
+                  review.cons.map((con, index) => (
+                    <li key={index} className="text-sm">
+                      {con}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <ScoreBar score={review.detail_score} label="Detail Score" />
+            <ScoreBar score={review.balanced_score} label="Balanced Score" />
+            <ScoreBar
+              score={review.well_written_score}
+              label="Well Written Score"
+            />
+          </div>
+        </>
+      )}
+      <div className="mt-4 text-sm flex justify-between items-center">
+        <p>
+          <span className="font-semibold">Sentiment:</span>{" "}
+          {review.sentiment && <SentimentIcon sentiment={review.sentiment} />}
+        </p>
+        <Button
+          onClick={() => setExpanded(!expanded)}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1"
+        >
+          {expanded ? (
+            <>
+              {" "}
+              View Less <ChevronUp className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              View More <ChevronDown className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
   return (
