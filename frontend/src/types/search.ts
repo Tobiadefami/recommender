@@ -14,12 +14,14 @@ export interface Review {
   balanced_score: number;
   well_written_score: number;
   comments?: Comment[];
+  star_rating: number;
 }
 
 export interface Comment {
   text: string;
   url: string;
 }
+
 export interface SearchResult {
   reviews: Review[];
   overall_decision: string;
