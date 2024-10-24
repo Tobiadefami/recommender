@@ -11,6 +11,7 @@ from fastapi.responses import RedirectResponse
 
 from recommender.auto_complete import autocomplete
 from recommender.database import init_db
+from recommender.fetch_similarities import fetch_similar_products
 from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.process_submissions import (
     process_submission,
@@ -116,6 +117,14 @@ async def authorize_callback(request: Request):
     save_refresh_token(refresh_token)
     print("user authenticated!")
     return RedirectResponse(url="/")
+
+
+@app.get("/similar_products/{product_name}")
+def similar_products(product_name: str):
+    similar_products = fetch_similar_products(product_name)
+    if similar_products:
+        return {"similar_products": similar_products}
+    return {"error": "Product not found."}
 
 
 @app.get("/search/{search_query}")
