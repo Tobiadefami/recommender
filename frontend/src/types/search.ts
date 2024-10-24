@@ -25,4 +25,10 @@ export interface Comment {
 export interface SearchResult {
   reviews: Review[];
   overall_decision: string;
+  similar_products: string[];
+}
+
+export interface ComparisonView {
+  mainProduct: SearchResult;
+  comparedProducts: SearchResult[];
 }

@@ -104,7 +104,6 @@ export default function SearchInterface({
             <LoadingCard />
           </div>
         )}
-
         {results && <SearchResults results={results} />}
 
         {!results && !loading && (

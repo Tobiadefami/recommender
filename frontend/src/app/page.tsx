@@ -10,11 +10,30 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
 
+  const fetchResults = async (query: string) => {
+    setLoading(true);
+    try {
+      const [searchResponse, similarProductsResponse] = await Promise.all([
+        api.get(`/search/${encodeURIComponent(query)}`),
+        api.get(`/similar_products/${encodeURIComponent(query)}`),
+      ]);
+
+      setResults({
+        ...searchResponse.data,
+        similar_products: similarProductsResponse.data.similar_products,
+      });
+    } catch (error) {
+      console.error("Failed to fetch search results:", error);
+      setResults(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSuggestions(false);
-      setResults(null);
       await fetchResults(searchQuery);
     }
   };
@@ -22,21 +41,7 @@ export default function Home() {
   const handleSuggestionSelect = async (suggestion: string) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
-    setResults(null);
     await fetchResults(suggestion);
-  };
-
-  const fetchResults = async (query: string) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/search/${encodeURIComponent(query)}`);
-      setResults(response.data);
-    } catch (error) {
-      console.error("Failed to fetch search results:", error);
-      setResults(null);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSearchQueryChange = (query: string) => {
