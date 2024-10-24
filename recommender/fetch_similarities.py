@@ -4,7 +4,8 @@ from recommender.product_categories import PRODUCT_TIERS
 
 
 def fetch_similar_products(product_name: str) -> List[str]:
-    product_info = PRODUCT_TIERS[product_name]
+    product_info = PRODUCT_TIERS.get(product_name, None)
+
     if not product_info:
         return []
     category = product_info["category"]
