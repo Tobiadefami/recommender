@@ -34,6 +34,21 @@ PRODUCT_TIERS = {
         "tier": "High-end",
         "release_year": 2021,
     },
+    "iPhone 15 Pro Max": {
+        "category": "Smartphones",
+        "tier": "High-end",
+        "release_year": 2023,
+    },
+    "Google Pixel 8 Pro": {
+        "category": "Smartphones",
+        "tier": "High-end",
+        "release_year": 2023,
+    },
+    "Samsung Galaxy S23 Ultra": {
+        "category": "Smartphones",
+        "tier": "High-end",
+        "release_year": 2023,
+    },
     "OnePlus 11": {
         "category": "Smartphones",
         "tier": "High-end",
