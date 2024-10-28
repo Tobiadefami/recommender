@@ -51,10 +51,17 @@ export default function SearchInterface({
     return (
       <div className="min-h-screen bg-background text-foreground">
         {/* Fixed header */}
-        <header className="fixed top-0 left-0 right-0 bg-background z-10 p-4 md:p-8 border-b">
+        <header className="fixed top-0 left-0 right-0 bg-background z-40 p-4 md:p-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-semibold">Recommendr</h1>
+              <h1
+                className="text-2xl font-semibold"
+                onClick={() => {
+                  window.location.href = "/";
+                }}
+              >
+                Recommendr
+              </h1>
               <Button
                 variant="ghost"
                 size="sm"
@@ -71,11 +78,10 @@ export default function SearchInterface({
 
         {/* Slide-out Analytics Panel */}
         <div
-          className={`fixed top-[73px] left-0 h-[calc(100vh-73px)] w-[300px] bg-background border-r transform transition-transform duration-200 overflow-y-auto ${
+          className={`fixed top-[73px] left-0 h-[calc(100vh-73px)] w-[300px] bg-background border-r transform transition-transform duration-200 ${
             showAnalytics ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {" "}
           <div className="p-4 md:p-6">
             <SearchAnalytics
               recentSearches={searchAnalytics}
@@ -91,70 +97,60 @@ export default function SearchInterface({
           }`}
         >
           <div className="max-w-3xl mx-auto p-4 md:p-8">
-            <h2 className="text-3xl font-light mb-6">
-              {greeting}, {userName}
-            </h2>
-            <form onSubmit={onSubmit} className="bg-card rounded-lg p-4 mb-8">
-              <Autocomplete
-                value={searchQuery}
-                onChange={onSearchQueryChange}
-                onSuggestionSelect={onSuggestionSelect}
-                onSubmit={onSubmit}
-                showSuggestions={showSuggestions}
-              />
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Get started with an example below</span>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-4">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onSearchQueryChange("Pixel 7 pro")}
-                >
-                  Pixel 7 pro
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onSearchQueryChange("Porsche taycan")}
-                >
-                  Porsche taycan
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onSearchQueryChange("Sony a7s iii")}
-                >
-                  Sony a7s iii
-                </Button>
-                <Button
-                  onClick={onClearSuggestions}
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <Button type="submit" className="mt-4">
-                Search
-              </Button>
-            </form>
-
-            {loading && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-semibold mb-4">
-                  Fetching Results...
-                </h2>
-                <LoadingCard />
-                <LoadingCard />
-                <LoadingCard />
-              </div>
-            )}
-            {results && <SearchResults results={results} />}
-
-            {!results && !loading && (
+            {!results && !loading ? (
               <>
+                {/* Welcome Section */}
+                <h2 className="text-3xl font-light mb-6">
+                  {greeting}, {userName}
+                </h2>
+                <form
+                  onSubmit={onSubmit}
+                  className="bg-card rounded-lg p-4 mb-8"
+                >
+                  <Autocomplete
+                    value={searchQuery}
+                    onChange={onSearchQueryChange}
+                    onSuggestionSelect={onSuggestionSelect}
+                    onSubmit={onSubmit}
+                    showSuggestions={showSuggestions}
+                  />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Get started with an example below</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onSearchQueryChange("Pixel 7 pro")}
+                    >
+                      Pixel 7 pro
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onSearchQueryChange("Porsche taycan")}
+                    >
+                      Porsche taycan
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onSearchQueryChange("Sony a7s iii")}
+                    >
+                      Sony a7s iii
+                    </Button>
+                    <Button
+                      onClick={onClearSuggestions}
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </form>
+
+                {/* Recent Searches Section */}
                 <div className="mb-4 flex justify-between items-center">
                   <h3 className="text-sm font-semibold flex items-center gap-2">
                     <Search className="w-4 h-4" />
@@ -180,6 +176,37 @@ export default function SearchInterface({
                     </div>
                   ))}
                 </div>
+              </>
+            ) : (
+              <>
+                {/* Search Form when results are present */}
+                <form
+                  onSubmit={onSubmit}
+                  className="bg-card rounded-lg p-4 mb-8"
+                >
+                  <Autocomplete
+                    value={searchQuery}
+                    onChange={onSearchQueryChange}
+                    onSuggestionSelect={onSuggestionSelect}
+                    onSubmit={onSubmit}
+                    showSuggestions={showSuggestions}
+                  />
+                </form>
+
+                {/* Loading State */}
+                {loading && (
+                  <div className="mt-8">
+                    <h2 className="text-2xl font-semibold mb-4">
+                      Fetching Results...
+                    </h2>
+                    <LoadingCard />
+                    <LoadingCard />
+                    <LoadingCard />
+                  </div>
+                )}
+
+                {/* Search Results */}
+                {results && <SearchResults results={results} />}
               </>
             )}
           </div>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SearchInterface from "@/components/SearchInterface";
 import api from "@/app/api";
 import { SearchResult, SearchAnalytic } from "@/types/search";
@@ -12,6 +12,7 @@ export default function Home() {
 
   const fetchResults = async (query: string) => {
     setLoading(true);
+    setResults(null); // Clear previous results when starting a new search
     try {
       const [searchResponse, similarProductsResponse] = await Promise.all([
         api.get(`/search/${encodeURIComponent(query)}`),
