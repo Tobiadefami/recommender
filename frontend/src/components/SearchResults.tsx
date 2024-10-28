@@ -10,7 +10,6 @@ interface SearchResultsProps {
   results: SearchResult;
 }
 
-// recommender/frontend/src/components/SearchResults.tsx
 const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
   const [comparisonProduct, setComparisonProduct] =
     useState<SearchResult | null>(null);
@@ -77,9 +76,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
       )}
 
       <h3 className="text-xl font-semibold mb-4">Reviews</h3>
-      {results.reviews.map((review, index) => (
-        <ReviewCard key={index} review={review} />
-      ))}
+      {results.reviews.map((review, index) => {
+        console.log("results.reviews", results.reviews);
+
+        return <ReviewCard key={index} review={review} />;
+      })}
 
       <SlideOutPanel
         product={comparisonProduct}

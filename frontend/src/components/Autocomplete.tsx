@@ -2,7 +2,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import api from "@/app/api";
-
+import { useCallback } from "react";
+import { Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 interface AutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -25,19 +27,7 @@ export default function Autocomplete({
   );
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
-    if (value.length > 1 && internalShowSuggestions) {
-      fetchSuggestions();
-    } else {
-      setSuggestions([]);
-    }
-  }, [value, internalShowSuggestions]);
-
-  useEffect(() => {
-    setInternalShowSuggestions(initialShowSuggestions);
-  }, [initialShowSuggestions]);
-
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = useCallback(async () => {
     try {
       const response = await api.get(
         `/autocomplete?query=${encodeURIComponent(value)}`,
@@ -46,7 +36,19 @@ export default function Autocomplete({
     } catch (error) {
       console.error("Failed to fetch suggestions:", error);
     }
-  };
+  }, [value]);
+
+  useEffect(() => {
+    if (value.length > 1 && internalShowSuggestions) {
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+    }
+  }, [value, fetchSuggestions, internalShowSuggestions]);
+
+  useEffect(() => {
+    setInternalShowSuggestions(initialShowSuggestions);
+  }, [initialShowSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionSelect(suggestion);
@@ -68,11 +70,13 @@ export default function Autocomplete({
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setFocusedIndex((prevIndex) =>
-        prevIndex < suggestions.length - 1 ? prevIndex + 1 : prevIndex,
+        prevIndex === suggestions.length - 1 ? 0 : prevIndex + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setFocusedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : -1));
+      setFocusedIndex((prevIndex) =>
+        prevIndex <= 0 ? suggestions.length - 1 : prevIndex - 1,
+      );
     } else if (e.key === "Escape") {
       e.preventDefault();
       setSuggestions([]);
@@ -98,19 +102,54 @@ export default function Autocomplete({
     }
   }, [focusedIndex]);
 
+  const handleClear = () => {
+    onChange("");
+    setSuggestions([]);
+    setFocusedIndex(-1);
+    setInternalShowSuggestions(false);
+  };
+  const handleSearchClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (value.trim()) {
+      onSubmit(e as any);
+    }
+  };
+
   return (
     <div className="relative">
-      <Input
-        className="bg-transparent border-none text-lg placeholder-muted-foreground mb-4"
-        placeholder="Iphone 16 pro max"
-        value={value}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-      />
+      <div className="relative flex items-center">
+        <Input
+          className="bg-transparent pr-20 text-lg placeholder-muted-foreground"
+          placeholder="Iphone 16 pro max"
+          value={value}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+        />
+        <div className="absolute right-2 flex items-center gap-1">
+          {value && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-transparent"
+              onClick={handleClear}
+            >
+              <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 hover:bg-transparent"
+            onClick={handleSearchClick}
+          >
+            <Search className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </Button>
+        </div>
+      </div>
       {internalShowSuggestions && suggestions.length > 0 && (
         <ul
           ref={suggestionsRef}
-          className="absolute w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-y-auto"
+          className="absolute w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-y-auto z-50"
         >
           {suggestions.map((suggestion, index) => (
             <li
