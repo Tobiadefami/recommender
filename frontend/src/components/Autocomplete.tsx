@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import api from "@/app/api";
-
+import { useCallback } from "react";
 interface AutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -25,19 +25,7 @@ export default function Autocomplete({
   );
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
-    if (value.length > 1 && internalShowSuggestions) {
-      fetchSuggestions();
-    } else {
-      setSuggestions([]);
-    }
-  }, [value, internalShowSuggestions]);
-
-  useEffect(() => {
-    setInternalShowSuggestions(initialShowSuggestions);
-  }, [initialShowSuggestions]);
-
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = useCallback(async () => {
     try {
       const response = await api.get(
         `/autocomplete?query=${encodeURIComponent(value)}`,
@@ -46,7 +34,19 @@ export default function Autocomplete({
     } catch (error) {
       console.error("Failed to fetch suggestions:", error);
     }
-  };
+  }, [value]);
+
+  useEffect(() => {
+    if (value.length > 1 && internalShowSuggestions) {
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+    }
+  }, [value, fetchSuggestions, internalShowSuggestions]);
+
+  useEffect(() => {
+    setInternalShowSuggestions(initialShowSuggestions);
+  }, [initialShowSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionSelect(suggestion);

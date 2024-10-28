@@ -10,7 +10,7 @@ interface SlideOutPanelProps {
   product: SearchResult | null;
   isOpen: boolean;
   onClose: () => void;
-  isLoading: boolean; // Add this prop
+  isLoading: boolean;
 }
 
 const SlideOutPanel: React.FC<SlideOutPanelProps> = ({

@@ -32,3 +32,18 @@ export interface ComparisonView {
   mainProduct: SearchResult;
   comparedProducts: SearchResult[];
 }
+
+export interface SearchAnalytic {
+  query: string;
+  timestamp: Date;
+  resultCount: number;
+  averageRating: number;
+  sentiment: "positive" | "negative" | "neutral";
+}
+
+export interface RecentSearch {
+  query: string;
+  timestamp: Date;
+  resultCount: number;
+  averageRating?: number;
+}
