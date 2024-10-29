@@ -108,10 +108,10 @@ export default function Autocomplete({
     setFocusedIndex(-1);
     setInternalShowSuggestions(false);
   };
-  const handleSearchClick = (e: React.MouseEvent) => {
+  const handleSearchClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (value.trim()) {
-      onSubmit(e as any);
+      onSubmit(e as unknown as React.FormEvent);
     }
   };
 
@@ -119,8 +119,11 @@ export default function Autocomplete({
     <div className="relative">
       <div className="relative flex items-center">
         <Input
-          className="bg-transparent pr-20 text-lg placeholder-muted-foreground"
-          placeholder="Iphone 16 pro max"
+          className="bg-card/50 backdrop-blur-sm h-14 px-6 text-lg rounded-2xl shadow-sm
+                     border-2 border-muted hover:border-muted-foreground/25 transition-colors
+                     focus-visible:ring-2 focus-visible:ring-accent
+                     focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          placeholder="What product are you looking for?"
           value={value}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -130,35 +133,37 @@ export default function Autocomplete({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 hover:bg-transparent"
+              className="h-9 w-9 p-0 hover:bg-accent/50 rounded-xl"
               onClick={handleClear}
             >
-              <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              <X className="h-4 w-4 text-muted-foreground" />
             </Button>
           )}
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-transparent"
+            className="h-9 w-9 p-0 hover:bg-accent/50 rounded-xl"
             onClick={handleSearchClick}
           >
-            <Search className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            <Search className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
       </div>
       {internalShowSuggestions && suggestions.length > 0 && (
         <ul
           ref={suggestionsRef}
-          className="absolute w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-y-auto z-50"
+          className="absolute w-full bg-card/95 backdrop-blur-sm border border-border
+                    rounded-xl mt-2 max-h-60 overflow-y-auto z-50 shadow-lg"
         >
           {suggestions.map((suggestion, index) => (
             <li
               key={index}
-              className={`px-4 py-2 cursor-pointer ${
-                index === focusedIndex
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent hover:text-accent-foreground"
-              }`}
+              className={`px-4 py-3 cursor-pointer border-b last:border-0 border-border/50
+                        ${
+                          index === focusedIndex
+                            ? "bg-accent/50 text-accent-foreground"
+                            : "hover:bg-accent/25"
+                        }`}
               onClick={() => handleSuggestionClick(suggestion)}
             >
               {suggestion}
