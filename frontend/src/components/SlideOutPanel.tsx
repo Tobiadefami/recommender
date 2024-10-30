@@ -41,7 +41,7 @@ const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
       }`}
     >
       <div className="sticky top-0 bg-background p-4 border-b flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Comparison Product</h2>
+        <h2 className="text-xl font-semibold">Comparison</h2>
         <Button
           variant="ghost"
           size="icon"

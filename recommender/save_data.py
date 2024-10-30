@@ -1,11 +1,13 @@
 import logging
 from datetime import datetime
+from typing import Any, Dict, Union
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from recommender.database import engine, get_db
 from recommender.models import Base, Posts, StructuredOutput
+from recommender.structured_data import AllReviewAnalysis
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -92,7 +94,9 @@ def load_existing_data(search_query: str):
         db.close()
 
 
-def save_structured_output(search_query: str, structured_data: dict):
+def save_structured_output(
+    search_query: str, structured_data: Union[Dict[str, Any], AllReviewAnalysis]
+):
     db: Session = next(get_db())
 
     try:
