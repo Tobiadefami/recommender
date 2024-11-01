@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import SearchInterface from "@/components/SearchInterface";
 import api from "@/app/api";
 import { SearchResult, SearchAnalytic } from "@/types/search";
@@ -21,7 +21,11 @@ export default function Home() {
 
       setResults({
         ...searchResponse.data,
-        similar_products: similarProductsResponse.data.similar_products,
+        similar_products: similarProductsResponse.data.similar_products || {
+          same_brand: [],
+          competitors: [],
+          similar_category: [],
+        },
       });
     } catch (error) {
       console.error("Failed to fetch search results:", error);

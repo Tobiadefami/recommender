@@ -11,12 +11,12 @@ from fastapi.responses import RedirectResponse
 
 from recommender.auto_complete import autocomplete
 from recommender.database import init_db
-from recommender.fetch_similarities import fetch_similar_products
 from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.process_submissions import (
     process_submission,
     process_submissions,
 )
+from recommender.product_catalogue import ProductCatalogue
 from recommender.save_data import (
     get_existing_search_queries,
     load_structured_output,
@@ -121,10 +121,14 @@ async def authorize_callback(request: Request):
 
 @app.get("/similar_products/{product_name}")
 def similar_products(product_name: str):
-    similar_products = fetch_similar_products(product_name)
-    if similar_products:
-        return {"similar_products": similar_products}
-    return {"error": "Product not found."}
+    product_catalogue = ProductCatalogue()
+    similar_products = product_catalogue.get_similar_product(product_name)
+    if any(similar_products.values()):
+        return {
+            "similar_products": similar_products,
+            "product_type": product_catalogue.get_product_type(product_name),
+        }
+    return {"error": "Product not found or no similar products available."}
 
 
 @app.get("/search/{search_query}")

@@ -22,10 +22,16 @@ export interface Comment {
   url: string;
 }
 
+export interface SimilarProducts {
+  same_brand: string[];
+  competitors: string[];
+  similar_category: string[];
+}
+
 export interface SearchResult {
   reviews: Review[];
   overall_decision: string;
-  similar_products: string[];
+  similar_products: SimilarProducts;
 }
 
 export interface ComparisonView {
