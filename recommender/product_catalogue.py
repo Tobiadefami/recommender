@@ -1,38 +1,57 @@
-import json
-from pathlib import Path
 from typing import Dict, List, Optional
+
+from recommender.database import get_db
+from recommender.models import Product, ProductType
 
 
 class ProductCatalogue:
     def __init__(self):
         self.catalogue = self._load_catalogue()
         self.normalized_product_map = self._build_normalized_product_name_map()
-        
+
     def _load_catalogue(self) -> Dict:
-        catalogue_file = Path(__file__).parent / "product_categories.json"
-        with open(catalogue_file, "r") as f:
-            return json.load(f)
+        db = next(get_db())
+        try:
+            catalogue = {}
+            product_types = db.query(ProductType).all()
+            for product_type in product_types:
+                catalogue[product_type.name] = {
+                    "products": [],
+                }
+                for product in product_type.products:
+                    catalogue[product.name]["products"][product.name] = {
+                        "brand": product.brand,
+                        "category": product.category,
+                        "release_year": product.release_year,
+                        "price_range": product.price_range,
+                        "key_features": [
+                            feature.feature for feature in product.key_features
+                        ],
+                    }
+            return catalogue
+        finally:
+            db.close()
 
     def _build_normalized_product_name_map(self) -> Dict[str, str]:
         """logic to build a map of normalised product names"""
-        normalised = {}
-        for product_data in self.catalogue.values():
-            for product_name in product_data["products"]:
-                normalised[product_name.lower()] = product_name
-        return normalised
-   
+        db = next(get_db())
+        try:
+            products = db.query(Product).all()
+            return {product.name.lower(): product.name for product in products}
+        finally:
+            db.close()
+
     def _normalize_product_name(self, product_name: str) -> Optional[str]:
         """convert to lowercase"""
         return self.normalized_product_map.get(product_name.lower())
-    
-    
+
     def get_product_type(self, product_name: str) -> Optional[str]:
         normalized_product_name = self._normalize_product_name(product_name)
         if not normalized_product_name:
             return None
-        
+
         catalogue = self.catalogue
-        
+
         for product_type, data in catalogue.items():
             if normalized_product_name in data["products"]:
                 return product_type
@@ -41,7 +60,7 @@ class ProductCatalogue:
     def get_similar_product(self, product_name: str) -> Dict[str, List[str]]:
         normalized_product_name = self._normalize_product_name(product_name)
         if not normalized_product_name:
-            return {"same_brand": [], "competitors": [], "similar_category": []}       
+            return {"same_brand": [], "competitors": [], "similar_category": []}
         product_type = self.get_product_type(normalized_product_name)
         if not product_type:
             return {"same_brand": [], "competitors": [], "similar_category": []}
