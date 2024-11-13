@@ -1,11 +1,19 @@
+import asyncio
 import json
 import logging
 import os
 import secrets
+import uuid
 
 import asyncpraw
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import (
+    BackgroundTasks,
+    FastAPI,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
@@ -24,6 +32,12 @@ from recommender.save_data import (
     save_structured_output,
 )
 from recommender.structured_output import process_all_posts
+from recommender.task_manager import (
+    cleanup_old_tasks,
+    create_task,
+    get_task_status,
+    update_task_status,
+)
 
 CLIENT_ID = os.environ.get("REDDIT_APP_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("REDDIT_APP_CLIENT_SECRET")
@@ -55,6 +69,13 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     init_db()
+    asyncio.create_task(periodic_cleanup())
+
+
+async def periodic_cleanup():
+    while True:
+        await cleanup_old_tasks()
+        await asyncio.sleep(3600)
 
 
 async def get_reddit():
@@ -134,7 +155,12 @@ def similar_products(product_name: str):
 
 
 @app.get("/search/{search_query}")
-async def search(search_query: str, limit: int = 2, batch_size: int = 20):
+async def search(
+    search_query: str,
+    background_tasks: BackgroundTasks,
+    limit: int = 2,
+    batch_size: int = 20,
+):
     refresh_token = load_refresh_token()
 
     if not refresh_token:
@@ -144,42 +170,117 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
 
     existing_result = load_structured_output(normalized_query)
     if existing_result is not None:
-        return existing_result
+        return {
+            "status": "complete",
+            "data": existing_result,
+        }
 
-    youtube_data_futures = search_youtube_videos(
-        normalized_query, max_results=limit
+    # Generate request ID and create task
+    request_id = str(uuid.uuid4())
+    await create_task(normalized_query, request_id)
+
+    # Start background task
+    background_tasks.add_task(
+        fetch_and_process_data,
+        normalized_query,
+        limit,
+        batch_size,
+        request_id,
+        refresh_token,
     )
 
-    user_reddit = asyncpraw.Reddit(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        user_agent=USER_AGENT,
-        refresh_token=refresh_token,
-    )
-    user_reddit.read_only = False
-    subreddit = await user_reddit.subreddit("all")
-    reddit_search_results = []
-
-    async for submission in subreddit.search(normalized_query, limit=limit):
-        reddit_search_results.append(submission)
-
-    process_whole_reddit_data = await process_submissions(reddit_search_results)
-    processed_reddit_submissions = [
-        await process_submission(data) for data in process_whole_reddit_data
-    ]
-
-    youtube_data = await youtube_data_futures
-    all_submissions = {
-        normalized_query: [
-            {"reddit": processed_reddit_submissions, "youtube": youtube_data}
-        ]
+    return {
+        "status": "processing",
+        "request_id": request_id,
+        "websocket_url": f"/ws/{request_id}",
     }
-    save_data(all_submissions)
-    results = await process_all_posts(
-        all_submissions, normalized_query, batch_size
-    )
-    save_structured_output(normalized_query, results)
-    return results
+
+
+async def fetch_and_process_data(
+    query: str, limit: int, batch_size: int, request_id: str, refresh_token: str
+):
+    try:
+        # update status for youtube search
+        await update_task_status(request_id, progress=10)
+        youtube_data_futures = search_youtube_videos(query, max_results=limit)
+
+        # update status for reddit search
+        await update_task_status(request_id, progress=30)
+        user_reddit = asyncpraw.Reddit(
+            client_id=CLIENT_ID,
+            client_secret=CLIENT_SECRET,
+            user_agent=USER_AGENT,
+            refresh_token=refresh_token,
+        )
+        user_reddit.read_only = False
+
+        subreddit = await user_reddit.subreddit("all")
+        reddit_search_results = []
+
+        async for submission in subreddit.search(query, limit=limit):
+            reddit_search_results.append(submission)
+
+        await update_task_status(request_id, progress=50)
+
+        process_whole_reddit_data = await process_submissions(
+            reddit_search_results
+        )
+        processed_reddit_submissions = [
+            await process_submission(data) for data in process_whole_reddit_data
+        ]
+
+        await update_task_status(request_id, progress=70)
+
+        youtube_data = await youtube_data_futures
+
+        all_submissions = {
+            query: [
+                {
+                    "reddit": processed_reddit_submissions,
+                    "youtube": youtube_data,
+                }
+            ]
+        }
+        await update_task_status(request_id, progress=80)
+
+        save_data(all_submissions)
+
+        results = await process_all_posts(
+            all_submissions, query, batch_size, request_id
+        )
+        save_structured_output(query, results)
+
+    except Exception as e:
+        logger.error(f"Error processing data: {e}")
+        await update_task_status(request_id, status="error", error=str(e))
+
+
+@app.websocket("/ws/{request_id}")
+async def websocket_endpoint(websocket: WebSocket, request_id: str):
+    await websocket.accept()
+    try:
+        while True:
+            task = await get_task_status(request_id)
+            if not task:
+                await websocket.send_json(
+                    {"status": "error", "message": "Task not found"}
+                )
+                break
+            await websocket.send_json(
+                {
+                    "status": task.status,
+                    "progress": task.progress,
+                    "data": task.data,
+                    "error": task.error,
+                }
+            )
+            if task.status in ["complete", "error"]:
+                break
+            await asyncio.sleep(1)
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected for task: {request_id}")
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
 
 
 if __name__ == "__main__":

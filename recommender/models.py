@@ -35,3 +35,16 @@ class ProductModel(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     raw_data = Column(JSONB)
+
+
+class TaskStatus(Base):
+    __tablename__ = "task_status"
+
+    request_id = Column(String, primary_key=True)
+    search_query = Column(String, index=True)
+    status = Column(String)  # "processing", "complete", "error"
+    progress = Column(Integer)
+    error = Column(String, nullable=True)
+    data = Column(JSONB, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

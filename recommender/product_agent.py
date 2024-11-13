@@ -105,7 +105,6 @@ def get_product_information(
         return None
 
 
-# Example usage
 if __name__ == "__main__":
     query = "lenovo legion slim 7 i 2022"
     result = get_product_information(query)
