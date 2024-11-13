@@ -121,12 +121,14 @@ async def authorize_callback(request: Request):
 
 @app.get("/similar_products/{product_name}")
 def similar_products(product_name: str):
+    normalized_product_name = product_name.lower()
     product_catalogue = ProductCatalogue()
-    similar_products = product_catalogue.get_similar_product(product_name)
+    similar_products = product_catalogue.get_similar_product(
+        normalized_product_name
+    )
     if any(similar_products.values()):
         return {
             "similar_products": similar_products,
-            "product_type": product_catalogue.get_product_type(product_name),
         }
     return {"error": "Product not found or no similar products available."}
 
@@ -138,12 +140,14 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     if not refresh_token:
         return {"error": "User not authenticated."}
 
-    existing_result = load_structured_output(search_query)
+    normalized_query = search_query.lower()
+
+    existing_result = load_structured_output(normalized_query)
     if existing_result is not None:
         return existing_result
 
     youtube_data_futures = search_youtube_videos(
-        search_query, max_results=limit
+        normalized_query, max_results=limit
     )
 
     user_reddit = asyncpraw.Reddit(
@@ -156,7 +160,7 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     subreddit = await user_reddit.subreddit("all")
     reddit_search_results = []
 
-    async for submission in subreddit.search(search_query, limit=limit):
+    async for submission in subreddit.search(normalized_query, limit=limit):
         reddit_search_results.append(submission)
 
     process_whole_reddit_data = await process_submissions(reddit_search_results)
@@ -166,13 +170,15 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
 
     youtube_data = await youtube_data_futures
     all_submissions = {
-        search_query: [
+        normalized_query: [
             {"reddit": processed_reddit_submissions, "youtube": youtube_data}
         ]
     }
     save_data(all_submissions)
-    results = await process_all_posts(all_submissions, search_query, batch_size)
-    save_structured_output(search_query, results)
+    results = await process_all_posts(
+        all_submissions, normalized_query, batch_size
+    )
+    save_structured_output(normalized_query, results)
     return results
 
 

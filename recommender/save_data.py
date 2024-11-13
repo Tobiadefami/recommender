@@ -24,7 +24,9 @@ def save_data(all_submissions: dict):
         for search_query, submissions_list in all_submissions.items():
             latest_submissions = (
                 db.query(func.max(Posts.created_at))
-                .filter(Posts.search_query == search_query)
+                .filter(
+                    func.lower(Posts.search_query) == func.lower(search_query)
+                )
                 .scalar()
             )
             for submission_dict in submissions_list:
@@ -80,7 +82,11 @@ def save_data(all_submissions: dict):
 def load_existing_data(search_query: str):
     db: Session = next(get_db())
     try:
-        posts = db.query(Posts).filter(Posts.search_query == search_query).all()
+        posts = (
+            db.query(Posts)
+            .filter(func.lower(Posts.search_query) == func.lower(search_query))
+            .all()
+        )
         reddit_posts = [
             post.raw_data for post in posts if post.source == "reddit"
         ]
@@ -102,7 +108,10 @@ def save_structured_output(
     try:
         existing_output = (
             db.query(StructuredOutput)
-            .filter(StructuredOutput.search_query == search_query)
+            .filter(
+                func.lower(StructuredOutput.search_query)
+                == func.lower(search_query)
+            )
             .first()
         )
         if existing_output is None:
@@ -129,7 +138,7 @@ def load_structured_output(search_query: str):
     try:
         structured_output = (
             db.query(StructuredOutput)
-            .filter(StructuredOutput.search_query == search_query)
+            .filter(func.lower(StructuredOutput.search_query) == search_query)
             .order_by(StructuredOutput.id.desc())
             .first()
         )
