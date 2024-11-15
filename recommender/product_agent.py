@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Dict, Optional
 
 from langchain_community.tools.ddg_search.tool import DuckDuckGoSearchResults
@@ -7,6 +8,7 @@ from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
+from recommender.messages import get_system_message
 from recommender.product_db import get_product_from_db, save_product_info
 
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +32,7 @@ def get_product_information(
 
     def search_ddg(query) -> str:
         """Search DuckDuckGo for the given query."""
+        enhanced_query = f"{query} specs technical details official reviews"
         return ddg.invoke(query)
 
     search_results = StructuredTool.from_function(
@@ -39,30 +42,16 @@ def get_product_information(
         args_schema=SearchQuery,
         return_direct=True,
     )
+    current_year = datetime.now().year
 
-    system_message = SystemMessage(
-        content="""
-        You are a product specialist. Use the search tool to find factual product details about the query and return them as JSON with fields like brand, category, release_year, tier, price_range, and key_features.
-
-        Example format:
-        {
-          "Product Name": {
-            "brand": "Brand",
-            "category": "Category",
-            "release_year": 202X,
-            "tier":"flasgship", "mid-range", "budget"
-            "price_range": "Price Range",
-            "key_features": ["Feature1", "Feature2"]
-          }
-        }
-        """
-    )
+    system_message = SystemMessage(content=get_system_message(current_year))
 
     messages = [
         system_message,
         HumanMessage(
             content=(
-                f"Search the web for {query} and format it according to the structure defined."
+                f"Search for detailed and verified information about {query}. "
+                "Focus on oficcial sources and reliable reviews."
             )
         ),
     ]
@@ -71,27 +60,59 @@ def get_product_information(
     ai_msg = llm_with_tools.invoke(messages)
     messages.append(ai_msg)
 
-    while ai_msg.tool_calls:
+    iteration = 0
+    max_iterations = 3
+
+    while ai_msg.tool_calls and iteration < max_iterations:
         for tool_call in ai_msg.tool_calls:
-            selected_tool = (
-                search_results if tool_call["name"] == "search_ddg" else ddg
-            )
+            if tool_call["name"] == "search_ddg":
+                verification_queries = [
+                    f"{query} official specifications",
+                    f"{query} official release date and price",
+                    f"{query} official reviews",
+                ]
 
-            # Convert the args to the expected format
-            tool_args = {"query": query}
+                tool_output = ""
+                for v_query in verification_queries:
+                    # Convert the args to the expected format
+                    tool_args = {"query": v_query}
+                    result = search_results.invoke(tool_args)
+                    tool_output += (
+                        f"\n--- Results for {v_query} ---\n{result}\n"
+                    )
+                    print(f"Tool output:\n{tool_output[:200]}...")
 
-            tool_output = selected_tool.invoke(tool_args)
-            print(f"Tool output:\n{tool_output[:200]}...")
-
-            messages.append(
-                ToolMessage(content=tool_output, tool_call_id=tool_call["id"])
-            )
+                messages.append(
+                    ToolMessage(
+                        content=tool_output, tool_call_id=tool_call["id"]
+                    )
+                )
 
         ai_msg = llm_with_tools.invoke(messages)
         messages.append(ai_msg)
+        iteration += 1
+    logger.info(f"Completed {iteration} iterations")
 
     print("Final output:\n", ai_msg.content)
+
     try:
+        # validate the product format and content
+        import json
+
+        product_info = json.loads(ai_msg.content)
+        print(f"{product_info=}")
+        for product in product_info.values():
+            if product["release_year"] > current_year:
+                raise ValueError(
+                    "Release year can not be greater than the current year"
+                )
+            if not all(
+                key in product for key in ["brand", "model", "confidence_score"]
+            ):
+                raise ValueError(
+                    "Missing required fields in product information"
+                )
+
         saved_product = save_product_info(
             product_data=ai_msg.content, raw_data=str(messages)
         )

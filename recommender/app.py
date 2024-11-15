@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import secrets
+from typing import Dict
 
 import asyncpraw
 import uvicorn
@@ -92,11 +93,6 @@ def auto_complete(query: str):
     return autocomplete(query, existing_queries)
 
 
-@app.get("/recent_searches")
-def recent_searches():
-    pass
-
-
 @app.get("/authorize")
 async def authorize():
     reddit = await get_reddit()
@@ -133,6 +129,14 @@ def similar_products(product_name: str):
     return {"error": "Product not found or no similar products available."}
 
 
+def filter_data(db: Dict[str, list[dict]]) -> Dict[str, list[dict]]:
+    modified = [
+        data for data in db["reviews"] if data.get("review_summary") is not None
+    ]
+    db["reviews"] = modified
+    return db
+
+
 @app.get("/search/{search_query}")
 async def search(search_query: str, limit: int = 2, batch_size: int = 20):
     refresh_token = load_refresh_token()
@@ -144,7 +148,8 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
 
     existing_result = load_structured_output(normalized_query)
     if existing_result is not None:
-        return existing_result
+        print(f"{existing_result=}")
+        return filter_data(existing_result)
 
     youtube_data_futures = search_youtube_videos(
         normalized_query, max_results=limit
@@ -174,12 +179,14 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
             {"reddit": processed_reddit_submissions, "youtube": youtube_data}
         ]
     }
+
     save_data(all_submissions)
     results = await process_all_posts(
         all_submissions, normalized_query, batch_size
     )
-    save_structured_output(normalized_query, results)
-    return results
+    filtered_results = filter_data(results)
+    save_structured_output(normalized_query, filtered_results)
+    return filtered_results
 
 
 if __name__ == "__main__":
