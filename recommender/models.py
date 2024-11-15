@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import ARRAY, Column, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 
 from recommender.database import Base
@@ -19,3 +19,19 @@ class StructuredOutput(Base):
     id = Column(Integer, primary_key=True)
     search_query = Column(String, index=True)
     data = Column(JSONB)
+
+
+class ProductModel(Base):
+    __tablename__ = "product_catalogue"
+
+    id = Column(Integer, primary_key=True)
+    product_name = Column(String, unique=True, index=True)
+    brand = Column(String, index=True)
+    category = Column(String, index=True)
+    tier = Column(String)
+    release_year = Column(Integer)
+    price_range = Column(String)
+    key_features = Column(ARRAY(String))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    raw_data = Column(JSONB)
