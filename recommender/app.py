@@ -6,7 +6,7 @@ from typing import Dict
 
 import asyncpraw
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
@@ -117,16 +117,22 @@ async def authorize_callback(request: Request):
 
 @app.get("/similar_products/{product_name}")
 def similar_products(product_name: str):
+    if not product_name or len(product_name.strip()) == 0:
+        raise HTTPException(
+            status_code=400, detail="Product name cannot be empty."
+        )
     normalized_product_name = product_name.lower()
     product_catalogue = ProductCatalogue()
     similar_products = product_catalogue.get_similar_product(
         normalized_product_name
     )
-    if any(similar_products.values()):
-        return {
-            "similar_products": similar_products,
-        }
-    return {"error": "Product not found or no similar products available."}
+    if not similar_products:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found or no similar products available.",
+        )
+
+    return {"similar_products": similar_products}
 
 
 def filter_data(db: Dict[str, list[dict]]) -> Dict[str, list[dict]]:
