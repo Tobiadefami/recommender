@@ -41,7 +41,7 @@ export interface ComparisonView {
 
 export interface SearchAnalytic {
   query: string;
-  timestamp: Date;
+  timestamp: string;
   resultCount: number;
   averageRating: number;
   sentiment: "positive" | "negative" | "neutral";
