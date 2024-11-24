@@ -1,43 +1,43 @@
-import json
 import logging
-import os
-import secrets
+from datetime import timedelta
 from typing import Dict
 
-import asyncpraw
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session, joinedload
+from starlette.responses import RedirectResponse
 
+from recommender.analytics import (
+    format_analytics_result,
+    get_user_search_analytics,
+)
+from recommender.auth import (
+    create_access_token,
+    get_current_user,
+    get_password_hash,
+    verify_password,
+)
 from recommender.auto_complete import autocomplete
-from recommender.database import init_db
+from recommender.database import get_db, init_db
+from recommender.environment_vars import ORIGIN
 from recommender.fetch_youtube_data import search_youtube_videos
+from recommender.models import SearchHistory, StructuredOutput, User
 from recommender.process_submissions import (
     process_submission,
     process_submissions,
 )
 from recommender.product_catalogue import ProductCatalogue
+from recommender.reddit_service import RedditService
 from recommender.save_data import (
     get_existing_search_queries,
     load_structured_output,
     save_data,
     save_structured_output,
 )
+from recommender.schemas import SearchAnalytic, UserCreate, UserResponse
 from recommender.structured_output import process_all_posts
-
-CLIENT_ID = os.environ.get("REDDIT_APP_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("REDDIT_APP_CLIENT_SECRET")
-NGINX_HOST = os.getenv("NGINX_HOST")
-RECOMMENDER_ENV = os.getenv("RECOMMENDER_ENV", "development")
-PROTOCOL = "http" if RECOMMENDER_ENV == "development" else "https"
-REDIRECT_URI = f"{PROTOCOL}://{NGINX_HOST}/api/authorize_callback"
-USER_AGENT = "web:product-review-app:v1.0 (by /u/tobiadefami)"
-
-STATE = secrets.token_urlsafe(16)
-REFRESH_TOKEN_FILE = "refresh_token.json"
-
-ORIGIN = [f"{PROTOCOL}://{NGINX_HOST}"]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,38 +52,107 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 @app.on_event("startup")
 async def startup_event():
     init_db()
 
 
-async def get_reddit():
-    reddit = asyncpraw.Reddit(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        user_agent=USER_AGENT,
-        redirect_uri=REDIRECT_URI,
+@app.get("/users/me", response_model=UserResponse)
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
+        )
+    return current_user
+
+
+@app.get("/user/recent-searches", response_model=list[SearchAnalytic])
+async def get_recent_searches(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    limit: int = 3,
+):
+    """get users most recent searches with analytics"""
+    analytics = get_user_search_analytics(current_user.id, db, limit)
+    return format_analytics_result(analytics)
+
+
+# Authentication endpoints
+@app.post("/register")
+async def register(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()
+    if db_user:
+        raise HTTPException(
+            status_code=400, detail="Username already registered"
+        )
+
+    hashed_password = get_password_hash(user.password)
+    db_user = User(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_password,
+        is_active=True,
     )
-    return reddit
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
-def save_refresh_token(token):
-    with open(REFRESH_TOKEN_FILE, "w") as f:
-        json.dump({"refresh_token": token}, f)
+@app.post("/token")
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user or not verify_password(
+        form_data.password, user.hashed_password
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
-def load_refresh_token():
-    if os.path.exists(REFRESH_TOKEN_FILE):
-        with open(REFRESH_TOKEN_FILE, "r") as f:
-            data = json.load(f)
-            return data.get("refresh_token")
-    return None
+@app.get("/reddit/auth")
+async def reddit_auth(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Initialize Reddit authentication process for app-level access"""
+    reddit_service = RedditService(db)
+    auth_url, _ = await reddit_service.get_auth_url(current_user)
+    return {"url": auth_url}
 
 
-@app.get("/")
-async def home():
-    return RedirectResponse(url="/authorize")
+@app.get("/reddit/callback")
+async def reddit_callback(
+    code: str,
+    state: str,
+    db: Session = Depends(get_db),
+):
+    """Handle Reddit OAuth callback"""
+
+    user = db.query(User).filter(User.reddit_state == state).first()
+    reddit_service = RedditService(db)
+
+    success = await reddit_service.handle_callback(code, state, user)
+
+    if success:
+        return RedirectResponse(url=f"{ORIGIN}?reddit_auth=success")
+
+    return RedirectResponse(url=f"{ORIGIN}?reddit_auth=failed")
 
 
 @app.get("/autocomplete")
@@ -91,28 +160,6 @@ def auto_complete(query: str):
     existing_queries = get_existing_search_queries()
 
     return autocomplete(query, existing_queries)
-
-
-@app.get("/authorize")
-async def authorize():
-    reddit = await get_reddit()
-    url = reddit.auth.url(["identity", "read"], STATE, "permanent")
-    return RedirectResponse(url=str(url))
-
-
-@app.get("/authorize_callback")
-async def authorize_callback(request: Request):
-    state = request.query_params["state"]
-    code = request.query_params["code"]
-
-    if state != STATE:
-        return {"error": "State mismatch"}
-
-    reddit = await get_reddit()
-    refresh_token = await reddit.auth.authorize(code)
-    save_refresh_token(refresh_token)
-    print("user authenticated!")
-    return RedirectResponse(url="/")
 
 
 @app.get("/similar_products/{product_name}")
@@ -135,40 +182,49 @@ def similar_products(product_name: str):
     return {"similar_products": similar_products}
 
 
-def filter_data(db: Dict[str, list[dict]]) -> Dict[str, list[dict]]:
-    modified = [
-        data for data in db["reviews"] if data.get("review_summary") is not None
-    ]
-    db["reviews"] = modified
-    return db
-
-
 @app.get("/search/{search_query}")
-async def search(search_query: str, limit: int = 2, batch_size: int = 20):
-    refresh_token = load_refresh_token()
-
-    if not refresh_token:
-        return {"error": "User not authenticated."}
-
+async def search(
+    search_query: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    limit: int = 2,
+    batch_size: int = 20,
+):
     normalized_query = search_query.lower()
 
-    existing_result = load_structured_output(normalized_query)
-    if existing_result is not None:
-        print(f"{existing_result=}")
+    # Get existing structured output from database
+    structured_output = (
+        db.query(StructuredOutput)
+        .options(joinedload(StructuredOutput.reviews))
+        .filter(StructuredOutput.search_query == normalized_query)
+        .first()
+    )
+
+    # If we have cached results
+    if structured_output:
+        structured_output.reviews
+        # Create search history entry with the existing structured output
+        search_history = SearchHistory(
+            user_id=current_user.id,
+            search_query=search_query,
+            structured_output_id=structured_output.id,
+        )
+        db.add(search_history)
+        db.commit()
+
+        # Return cached results
+        existing_result = load_structured_output(normalized_query)
         return filter_data(existing_result)
+
+    # If no cached results, perform new search
+    reddit_service = RedditService(db=db)
+    reddit = await reddit_service.get_authorized_client(current_user)
 
     youtube_data_futures = search_youtube_videos(
         normalized_query, max_results=limit
     )
 
-    user_reddit = asyncpraw.Reddit(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        user_agent=USER_AGENT,
-        refresh_token=refresh_token,
-    )
-    user_reddit.read_only = False
-    subreddit = await user_reddit.subreddit("all")
+    subreddit = await reddit.subreddit("all")
     reddit_search_results = []
 
     async for submission in subreddit.search(normalized_query, limit=limit):
@@ -191,8 +247,39 @@ async def search(search_query: str, limit: int = 2, batch_size: int = 20):
         all_submissions, normalized_query, batch_size
     )
     filtered_results = filter_data(results)
-    save_structured_output(normalized_query, filtered_results)
+
+    # Save structured output and create search history
+    structured_output = save_structured_output(
+        normalized_query, filtered_results
+    )
+    if structured_output:
+        search_history = SearchHistory(
+            user_id=current_user.id,
+            search_query=search_query,
+            structured_output_id=structured_output.id,
+        )
+        db.add(search_history)
+        db.commit()
+
     return filtered_results
+
+
+@app.get("/user/search-analytics", response_model=list[SearchAnalytic])
+async def get_user_search_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get analytics for the current user's search history"""
+    analytics = get_user_search_analytics(current_user.id, db)
+    return format_analytics_result(analytics)
+
+
+def filter_data(db: Dict[str, list[dict]]) -> Dict[str, list[dict]]:
+    modified = [
+        data for data in db["reviews"] if data.get("review_summary") is not None
+    ]
+    db["reviews"] = modified
+    return db
 
 
 if __name__ == "__main__":
