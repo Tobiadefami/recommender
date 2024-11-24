@@ -1,13 +1,12 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict, Union
+from typing import Dict, Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from recommender.database import engine, get_db
-from recommender.models import Base, Posts, StructuredOutput
-from recommender.structured_data import AllReviewAnalysis
+from recommender.models import Base, Posts, Review, StructuredOutput
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -101,48 +100,85 @@ def load_existing_data(search_query: str):
 
 
 def save_structured_output(
-    search_query: str, structured_data: Union[Dict[str, Any], AllReviewAnalysis]
-):
+    search_query: str, data: Dict
+) -> Optional[StructuredOutput]:
     db: Session = next(get_db())
 
     try:
-        existing_output = (
-            db.query(StructuredOutput)
-            .filter(
-                func.lower(StructuredOutput.search_query)
-                == func.lower(search_query)
-            )
-            .first()
+        # Create StructuredOutput
+        structured_output = StructuredOutput(
+            search_query=search_query,
+            overall_decision=data.get("overall_decision", ""),
         )
-        if existing_output is None:
-            structured_output = StructuredOutput(
-                search_query=search_query,
-                data=structured_data,
+
+        db.add(structured_output)
+        db.flush()  # get id without commiting
+
+        # Create Review records
+        for review_data in data.get("reviews", []):
+            review = Review(
+                structured_output_id=structured_output.id,
+                source=review_data["source"],
+                product_name=review_data["product_name"],
+                post_id=review_data["post_id"],
+                url=review_data["url"],
+                review_summary=review_data["review_summary"],
+                pros=review_data.get("pros", []),
+                cons=review_data.get("cons", []),
+                sentiment=review_data["sentiment"],
+                is_product_of_interest=review_data["is_product_of_interest"],
+                star_rating=review_data.get("star_rating"),
+                detail_score=review_data["detail_score"],
+                balanced_score=review_data["balanced_score"],
+                well_written_score=review_data["well_written_score"],
             )
-            db.add(structured_output)
-            db.commit()
-            logger.info(f"Saved structured output for query: {search_query}")
-        else:
-            logger.info(
-                f"Structured output for query already exists: {search_query}"
-            )
+            db.add(review)
+
+        db.commit()
+        return structured_output
     except Exception as e:
         db.rollback()
-        logger.error(f"Error saving structured output: {e}", exc_info=True)
+        logger.error(f"Error saving structured output: {e}")
+        return None
     finally:
         db.close()
 
 
 def load_structured_output(search_query: str):
+    """Get structured output with reviews"""
     db: Session = next(get_db())
     try:
-        structured_output = (
+        result = (
             db.query(StructuredOutput)
-            .filter(func.lower(StructuredOutput.search_query) == search_query)
-            .order_by(StructuredOutput.id.desc())
+            .options(joinedload(StructuredOutput.reviews))
+            .filter(StructuredOutput.search_query == search_query)
             .first()
         )
-        return structured_output.data if structured_output else None
+        if result:
+            return {
+                result.search_query: {
+                    "overall_decision": result.overall_decision,
+                    "reviews": [
+                        {
+                            "source": review.source,
+                            "product_name": review.product_name,
+                            "review_summary": review.review_summary,
+                            "pros": review.pros,
+                            "cons": review.cons,
+                            "sentiment": review.sentiment,
+                            "is_product_of_interest": review.is_product_of_interest,
+                            "post_id": review.post_id,
+                            "detail_score": review.detail_score,
+                            "balanced_score": review.balanced_score,
+                            "well_written_score": review.well_written_score,
+                            "url": review.url,
+                            "star_rating": review.star_rating,
+                        }
+                        for review in result.reviews
+                    ],
+                }
+            }
+        return None
     finally:
         db.close()
 

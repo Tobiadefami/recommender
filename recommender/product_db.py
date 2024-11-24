@@ -13,6 +13,43 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def validate_product_data(info: Dict) -> Dict:
+    """Validate and clean product information"""
+    cleaned_data = {}
+
+    # Handle release year
+    release_year = info.get("release_year")
+    if isinstance(release_year, int):
+        cleaned_data["release_year"] = str(release_year)
+    else:
+        cleaned_data["release_year"] = "unverified"
+
+    # Handle required string fields
+    string_fields = ["brand", "category", "tier", "price_range", "release_year"]
+    for field in string_fields:
+        value = info.get(field)
+        cleaned_data[field] = value if isinstance(value, str) else "unverified"
+
+    # Handle key features
+    key_features = info.get("key_features", [])
+    cleaned_data["key_features"] = (
+        [str(f) for f in key_features] if key_features else []
+    )
+
+    # Handle confidence score
+    cleaned_data["confidence_score"] = info.get("confidence_score", "low")
+
+    # Handle verification
+    cleaned_data["verified"] = all(
+        cleaned_data[field] != "unverified" for field in string_fields
+    )
+
+    # Handle sources
+    cleaned_data["sources"] = info.get("sources", [])
+
+    return cleaned_data
+
+
 def save_product_info(
     product_data: str, raw_data: Optional[str] = None
 ) -> Optional[ProductModel]:
@@ -31,6 +68,9 @@ def save_product_info(
         # Extract product name and info
         product_name, info = next(iter(data.items()))
 
+        # Validate and clean product information
+        cleaned_info = validate_product_data(info)
+
         # Check if product already exists
         existing_product = (
             db.query(ProductModel)
@@ -43,13 +83,11 @@ def save_product_info(
 
         if existing_product:
             # Update existing product
-            existing_product.brand = info["brand"]
-            existing_product.category = info["category"]
-            existing_product.release_year = info["release_year"]
-            existing_product.tier = info["tier"]
-            existing_product.price_range = info["price_range"]
-            existing_product.key_features = info["key_features"]
+            for key, value in cleaned_info.items():
+                setattr(existing_product, key, value)
+
             existing_product.updated_at = datetime.utcnow()
+            existing_product.verification_date = datetime.utcnow()
             existing_product.raw_data = (
                 raw_data if raw_data else existing_product.raw_data
             )
@@ -58,12 +96,16 @@ def save_product_info(
             # Create new product
             product = ProductModel(
                 product_name=product_name,
-                brand=info["brand"],
-                category=info["category"],
-                tier=info["tier"],
-                release_year=info["release_year"],
-                price_range=info["price_range"],
-                key_features=info["key_features"],
+                brand=cleaned_info["brand"],
+                category=cleaned_info["category"],
+                tier=cleaned_info["tier"],
+                release_year=cleaned_info["release_year"],
+                price_range=cleaned_info["price_range"],
+                key_features=cleaned_info["key_features"],
+                confidence_score=cleaned_info["confidence_score"],
+                verified=cleaned_info["verified"],
+                verification_date=datetime.utcnow(),
+                source_url=cleaned_info["sources"],
                 raw_data=raw_data,
             )
             db.add(product)
@@ -101,6 +143,12 @@ def get_product_from_db(product_name: str) -> Optional[Dict]:
                     "release_year": product.release_year,
                     "price_range": product.price_range,
                     "key_features": product.key_features,
+                    "confidence_score": product.confidence_score,
+                    "verified": product.verified,
+                    "verification_date": product.verification_date.isoformat()
+                    if product.verification_date
+                    else None,
+                    "source_url": product.source_url,
                 }
             }
         return None

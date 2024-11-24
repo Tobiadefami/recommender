@@ -2,47 +2,55 @@ import React, { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
+import UserMenu from "./UserMenu";
 import Autocomplete from "./Autocomplete";
 import getGreeting from "@/lib/greeting";
-import { SearchResult } from "@/types/search";
+import { SearchResult, SearchAnalytic } from "@/types/search";
 import SearchResults from "./SearchResults";
 import LoadingCard from "./LoadingCard";
-import { SearchAnalytic } from "@/types/search";
-import SearchAnalytics from "./SearchAnalytics";
-import { useRouter } from "next/navigation";
+import SearchHistory from "./SearchHistory";
+import { formatDistanceToNow } from "date-fns";
+import RedditConnectBanner from "./RedditConnectBanner";
 
 interface SearchInterfaceProps {
-  userName: string;
+  username: string;
   searchQuery: string;
   onSearchQueryChange: (query: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onSuggestionSelect: (suggestion: string) => void;
-  recentSearches: Array<{ title: string; daysAgo: number }>;
-  onViewAllSearches: () => void;
   onClearSuggestions: () => void;
+  onLogout: () => void;
   results: SearchResult | null;
   loading: boolean;
   showSuggestions: boolean;
-  searchAnalytics: SearchAnalytic[];
-  onAnalyticSelect: (query: string) => void;
+  recentSearches: SearchAnalytic[];
+  allSearchHistory: SearchAnalytic[];
+  isLoadingHistory: boolean;
+  hasRedditConnection: boolean;
+  showRedditBanner: boolean;
+  onRedditConnect: () => void;
+  onRedditBannerDismiss: () => void;
 }
 
 export default function SearchInterface({
-  userName,
+  username,
   searchQuery,
   onSearchQueryChange,
   onSubmit,
   onSuggestionSelect,
-  recentSearches,
-  onViewAllSearches,
   onClearSuggestions,
+  onLogout,
   results,
   loading,
   showSuggestions,
-  searchAnalytics,
-  onAnalyticSelect,
+  recentSearches,
+  allSearchHistory,
+  isLoadingHistory,
+  hasRedditConnection,
+  showRedditBanner,
+  onRedditConnect,
+  onRedditBannerDismiss,
 }: SearchInterfaceProps) {
-  const router = useRouter();
   const [greeting, setGreeting] = useState<string>("");
   const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
 
@@ -56,12 +64,7 @@ export default function SearchInterface({
       <header className="fixed top-0 left-0 right-0 bg-background z-40 p-4 md:p-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <h1
-              className="text-2xl font-semibold"
-              onClick={() => router.push("/")}
-            >
-              Recommendr
-            </h1>
+            <h1 className="text-2xl font-semibold">Recommendr</h1>
             <Button
               variant="ghost"
               size="sm"
@@ -72,7 +75,10 @@ export default function SearchInterface({
               Search History
             </Button>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <UserMenu username={username} onLogout={onLogout} />
+          </div>
         </div>
       </header>
 
@@ -83,9 +89,10 @@ export default function SearchInterface({
         }`}
       >
         <div className="p-4 md:p-6">
-          <SearchAnalytics
-            recentSearches={searchAnalytics}
-            onSearchSelect={onAnalyticSelect}
+          <SearchHistory
+            history={allSearchHistory}
+            onSearchSelect={onSuggestionSelect}
+            isLoading={isLoadingHistory}
           />
         </div>
       </div>
@@ -97,22 +104,31 @@ export default function SearchInterface({
         }`}
       >
         <div className="max-w-3xl mx-auto p-4 md:p-8">
-          {/* Welcome and Search Section - Always centered */}
+          {/* Welcome and Search Section */}
           <div className="mt-[100px] flex flex-col items-center">
+            {showRedditBanner && !hasRedditConnection && (
+              <div className="w-full max-w-2xl">
+                <RedditConnectBanner
+                  onDismiss={onRedditBannerDismiss}
+                  onConnect={onRedditConnect}
+                />
+              </div>
+            )}
             {!results && !loading ? (
               <>
                 <h2 className="text-4xl font-light mb-6 text-center">
-                  {greeting}, {userName}
+                  {greeting}, {username}
                 </h2>
 
                 <div className="w-full max-w-2xl">
+                  {/* Search Form */}
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
                       onSubmit(e);
                     }}
                     className="bg-card/50 backdrop-blur-sm rounded-3xl p-8 mb-12 shadow-lg
-                                border border-border/50 hover:border-border transition-colors"
+                              border border-border/50 hover:border-border transition-colors"
                   >
                     <Autocomplete
                       value={searchQuery}
@@ -161,33 +177,53 @@ export default function SearchInterface({
                   </form>
 
                   {/* Recent Searches */}
-                  <div className="w-full">
-                    <div className="mb-4 flex justify-between items-center">
-                      <h3 className="text-sm font-semibold flex items-center gap-2">
-                        <Search className="w-4 h-4" />
-                        Recent Searches
-                      </h3>
-                      <Button
-                        onClick={onViewAllSearches}
-                        variant="link"
-                        size="sm"
-                        className="text-muted-foreground"
-                      >
-                        View all
-                      </Button>
-                    </div>
+                  {recentSearches.length > 0 && (
+                    <div className="w-full">
+                      <div className="mb-4 flex justify-between items-center">
+                        <h3 className="text-sm font-semibold flex items-center gap-2">
+                          <Search className="w-4 h-4" />
+                          Recent Searches
+                        </h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAnalytics(true)}
+                          className="text-muted-foreground"
+                        >
+                          View all
+                        </Button>
+                      </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {recentSearches.map((search, index) => (
-                        <div key={index} className="bg-card p-4 rounded-lg">
-                          <h4 className="font-medium mb-2">{search.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {search.daysAgo} days ago
-                          </p>
-                        </div>
-                      ))}
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {recentSearches.map((search, index) => (
+                          <div
+                            key={index}
+                            className="bg-card p-4 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                            onClick={() => onSuggestionSelect(search.query)}
+                          >
+                            <h4 className="font-medium mb-2">{search.query}</h4>
+                            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                              <span>
+                                {formatDistanceToNow(
+                                  new Date(search.timestamp),
+                                  {
+                                    addSuffix: true,
+                                  },
+                                )}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span>{search.resultCount} results</span>
+                                <span>•</span>
+                                <span>
+                                  Rating: {search.averageRating.toFixed(1)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -199,7 +235,7 @@ export default function SearchInterface({
                     onSubmit(e);
                   }}
                   className="bg-card/50 backdrop-blur-sm rounded-3xl p-8 mb-8 shadow-lg
-                              border border-border/50 hover:border-border transition-colors"
+                            border border-border/50 hover:border-border transition-colors"
                 >
                   <Autocomplete
                     value={searchQuery}
@@ -213,9 +249,6 @@ export default function SearchInterface({
                 {/* Loading State */}
                 {loading && (
                   <div className="mt-8">
-                    <h2 className="text-2xl font-semibold mb-4">
-                      Fetching Results...
-                    </h2>
                     <LoadingCard />
                     <LoadingCard />
                     <LoadingCard />

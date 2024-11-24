@@ -28,6 +28,12 @@ class ProductCatalogue:
                     "tier": product.tier,
                     "price_range": product.price_range,
                     "key_features": product.key_features,
+                    "confidence_score": product.confidence_score,
+                    "verified": product.verified,
+                    "verification_date": product.verification_date.isoformat()
+                    if product.verification_date
+                    else None,
+                    "sources": product.source_url,
                 }
         except Exception as e:
             print(f"Error loading product catalogue: {e}")

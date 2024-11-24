@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 from typing import Dict, Optional
@@ -20,6 +21,19 @@ class SearchQuery(BaseModel):
     query: str = Field(..., description="The search query to look up")
 
 
+def validate_and_clean_json_data(json_string: str) -> str:
+    """Clean and validate json string before parsing"""
+
+    if json_string.startswith("```json"):
+        json_string = json_string.split("```json")[1]
+    if json_string.endswith("```"):
+        json_string = json_string.split("```")[0]
+
+    # Remove any leading/trailing whitespace
+    json_string = json_string.strip()
+    return json_string
+
+
 def get_product_information(
     query: str, model_name="gpt-4", temperature=0.1
 ) -> Optional[Dict]:
@@ -33,7 +47,7 @@ def get_product_information(
     def search_ddg(query) -> str:
         """Search DuckDuckGo for the given query."""
         enhanced_query = f"{query} specs technical details official reviews"
-        return ddg.invoke(query)
+        return ddg.invoke(enhanced_query)
 
     search_results = StructuredTool.from_function(
         func=search_ddg,
@@ -97,10 +111,16 @@ def get_product_information(
 
     try:
         # validate the product format and content
-        import json
+        cleaned_json = validate_and_clean_json_data(ai_msg.content)
+        logger.info(f"Cleaned Json Data  : {cleaned_json}")
+        try:
+            product_info = json.loads(cleaned_json)
+        except json.JSONDecodeError as json_error:
+            logger.error(f"Error in parsing JSON data: {json_error}")
+            logger.error(f"Problematic JSON data: {cleaned_json}")
+            return None
+        logger.info(f"Parsed product info: {product_info}")
 
-        product_info = json.loads(ai_msg.content)
-        print(f"{product_info=}")
         for product in product_info.values():
             if product["release_year"] > current_year:
                 raise ValueError(
@@ -122,7 +142,7 @@ def get_product_information(
             logger.error(f"Failed to save product information: {query}")
             return None
     except Exception as e:
-        logger.error(f"Error in product processing: {e}")
+        logger.error(f"Error in processing product information: {e}")
         return None
 
 
