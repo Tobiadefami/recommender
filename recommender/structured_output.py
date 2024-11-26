@@ -111,7 +111,7 @@ async def process_all_posts(
         reviews=combined_reviews,
         overall_decision=final_decision,
     )
-    return convert_to_dict(all_review_analysis)
+    return {search_query: convert_to_dict(all_review_analysis)}
 
 
 async def main():

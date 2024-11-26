@@ -1,12 +1,11 @@
 import logging
 from datetime import timedelta
-from typing import Dict
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
 from recommender.analytics import (
@@ -23,7 +22,7 @@ from recommender.auto_complete import autocomplete
 from recommender.database import get_db, init_db
 from recommender.environment_vars import ORIGIN
 from recommender.fetch_youtube_data import search_youtube_videos
-from recommender.models import SearchHistory, StructuredOutput, User
+from recommender.models import SearchHistory, User
 from recommender.process_submissions import (
     process_submission,
     process_submissions,
@@ -38,6 +37,7 @@ from recommender.save_data import (
 )
 from recommender.schemas import SearchAnalytic, UserCreate, UserResponse
 from recommender.structured_output import process_all_posts
+from recommender.utils import filter_data
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -150,7 +150,7 @@ async def reddit_callback(
     success = await reddit_service.handle_callback(code, state, user)
 
     if success:
-        return RedirectResponse(url=f"{ORIGIN}?reddit_auth=success")
+        return RedirectResponse(url=f"{ORIGIN}")
 
     return RedirectResponse(url=f"{ORIGIN}?reddit_auth=failed")
 
@@ -193,28 +193,21 @@ async def search(
     normalized_query = search_query.lower()
 
     # Get existing structured output from database
-    structured_output = (
-        db.query(StructuredOutput)
-        .options(joinedload(StructuredOutput.reviews))
-        .filter(StructuredOutput.search_query == normalized_query)
-        .first()
-    )
+    structured_output = load_structured_output(normalized_query, db=db)
 
     # If we have cached results
     if structured_output:
-        structured_output.reviews
         # Create search history entry with the existing structured output
         search_history = SearchHistory(
             user_id=current_user.id,
             search_query=search_query,
-            structured_output_id=structured_output.id,
+            structured_output_id=structured_output["id"],
         )
         db.add(search_history)
         db.commit()
 
         # Return cached results
-        existing_result = load_structured_output(normalized_query)
-        return filter_data(existing_result)
+        return filter_data(structured_output, search_query=normalized_query)
 
     # If no cached results, perform new search
     reddit_service = RedditService(db=db)
@@ -246,11 +239,11 @@ async def search(
     results = await process_all_posts(
         all_submissions, normalized_query, batch_size
     )
-    filtered_results = filter_data(results)
+    filtered_results = results
 
     # Save structured output and create search history
     structured_output = save_structured_output(
-        normalized_query, filtered_results
+        normalized_query, filtered_results, db=db
     )
     if structured_output:
         search_history = SearchHistory(
@@ -272,14 +265,6 @@ async def get_user_search_history(
     """Get analytics for the current user's search history"""
     analytics = get_user_search_analytics(current_user.id, db)
     return format_analytics_result(analytics)
-
-
-def filter_data(db: Dict[str, list[dict]]) -> Dict[str, list[dict]]:
-    modified = [
-        data for data in db["reviews"] if data.get("review_summary") is not None
-    ]
-    db["reviews"] = modified
-    return db
 
 
 if __name__ == "__main__":

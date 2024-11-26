@@ -72,7 +72,7 @@ class RedditService:
 
     async def get_authorized_client(self, user: User):
         """Get Reddit client with user's refresh token"""
-        reddit = self.get_reddit_client()
+        reddit = await self.get_reddit_client()
         if not user.has_reddit_refresh_token:
             logger.warning(
                 f"User {user.username} does not have a refresh token"

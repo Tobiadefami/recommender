@@ -100,10 +100,8 @@ def load_existing_data(search_query: str):
 
 
 def save_structured_output(
-    search_query: str, data: Dict
+    search_query: str, data: Dict, db: Session = None
 ) -> Optional[StructuredOutput]:
-    db: Session = next(get_db())
-
     try:
         # Create StructuredOutput
         structured_output = StructuredOutput(
@@ -112,25 +110,13 @@ def save_structured_output(
         )
 
         db.add(structured_output)
-        db.flush()  # get id without commiting
+        db.commit()
+        db.refresh(structured_output)
 
         # Create Review records
         for review_data in data.get("reviews", []):
             review = Review(
-                structured_output_id=structured_output.id,
-                source=review_data["source"],
-                product_name=review_data["product_name"],
-                post_id=review_data["post_id"],
-                url=review_data["url"],
-                review_summary=review_data["review_summary"],
-                pros=review_data.get("pros", []),
-                cons=review_data.get("cons", []),
-                sentiment=review_data["sentiment"],
-                is_product_of_interest=review_data["is_product_of_interest"],
-                star_rating=review_data.get("star_rating"),
-                detail_score=review_data["detail_score"],
-                balanced_score=review_data["balanced_score"],
-                well_written_score=review_data["well_written_score"],
+                structured_output_id=structured_output.id, **review_data
             )
             db.add(review)
 
@@ -140,22 +126,25 @@ def save_structured_output(
         db.rollback()
         logger.error(f"Error saving structured output: {e}")
         return None
-    finally:
-        db.close()
 
 
-def load_structured_output(search_query: str):
+def load_structured_output(search_query: str, db: Session = None):
     """Get structured output with reviews"""
-    db: Session = next(get_db())
+    if db is None:
+        db = next(get_db())
+        should_close = True
+    else:
+        should_close = False
     try:
         result = (
             db.query(StructuredOutput)
-            .options(joinedload(StructuredOutput.reviews))
             .filter(StructuredOutput.search_query == search_query)
+            .options(joinedload(StructuredOutput.reviews))
             .first()
         )
         if result:
             return {
+                "id": result.id,
                 result.search_query: {
                     "overall_decision": result.overall_decision,
                     "reviews": [
@@ -176,11 +165,12 @@ def load_structured_output(search_query: str):
                         }
                         for review in result.reviews
                     ],
-                }
+                },
             }
         return None
     finally:
-        db.close()
+        if should_close:
+            db.close()
 
 
 def get_existing_search_queries():
