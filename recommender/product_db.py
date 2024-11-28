@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from recommender.database import get_db
-from recommender.models import ProductModel
+from recommender.models import ProductModel, TrendingProducts
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -118,6 +118,29 @@ def save_product_info(
         db.rollback()
         logger.error(f"Error saving product info: {e}", exc_info=True)
         return None
+    finally:
+        db.close()
+
+
+def save_trending_products(
+    category: str, timeframe: str, trending_data: dict, raw_data: str
+) -> bool:
+    """Save trending products data to database"""
+    db = next(get_db())
+    try:
+        trending = TrendingProducts(
+            category=category,
+            timeframe=timeframe,
+            trending_data=trending_data,
+            raw_data=raw_data,
+        )
+        db.add(trending)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error saving trending products: {e}")
+        db.rollback()
+        return False
     finally:
         db.close()
 

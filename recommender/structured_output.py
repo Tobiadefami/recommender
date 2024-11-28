@@ -102,6 +102,7 @@ async def process_all_posts(
     final_decision = None
     if overall_decisions:
         # Combine individual decisions into a final decision
+        print(overall_decisions)
         final_decision = max(
             set(overall_decisions),
             key=overall_decisions.count,

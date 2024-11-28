@@ -9,7 +9,7 @@ from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from recommender.messages import get_system_message
+from recommender.messages import MessageType, get_system_message
 from recommender.product_db import get_product_from_db, save_product_info
 
 logging.basicConfig(level=logging.INFO)
@@ -58,7 +58,11 @@ def get_product_information(
     )
     current_year = datetime.now().year
 
-    system_message = SystemMessage(content=get_system_message(current_year))
+    system_message = SystemMessage(
+        content=get_system_message(
+            message_type=MessageType.PRODUCT_AGENT, current_year=current_year
+        )
+    )
 
     messages = [
         system_message,

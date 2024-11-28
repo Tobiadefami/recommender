@@ -7,5 +7,6 @@ RECOMMENDER_ENV = os.getenv("RECOMMENDER_ENV", "development")
 PROTOCOL = "http" if RECOMMENDER_ENV == "development" else "https"
 REDIRECT_URI = f"{PROTOCOL}://{NGINX_HOST}/api/reddit/callback"
 USER_AGENT = "web:product-review-app:v1.0 (by /u/tobiadefami)"
-ORIGIN = [f"{PROTOCOL}://{NGINX_HOST}"]
+REDIRECT_URL = f"{PROTOCOL}://{NGINX_HOST}"
+ORIGIN = [REDIRECT_URL]
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
