@@ -102,6 +102,7 @@ async def process_all_posts(
     final_decision = None
     if overall_decisions:
         # Combine individual decisions into a final decision
+        print(overall_decisions)
         final_decision = max(
             set(overall_decisions),
             key=overall_decisions.count,
@@ -111,7 +112,7 @@ async def process_all_posts(
         reviews=combined_reviews,
         overall_decision=final_decision,
     )
-    return {search_query: convert_to_dict(all_review_analysis)}
+    return convert_to_dict(all_review_analysis)
 
 
 async def main():

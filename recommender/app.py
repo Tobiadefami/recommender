@@ -20,7 +20,7 @@ from recommender.auth import (
 )
 from recommender.auto_complete import autocomplete
 from recommender.database import get_db, init_db
-from recommender.environment_vars import ORIGIN
+from recommender.environment_vars import ORIGIN, REDIRECT_URL
 from recommender.fetch_youtube_data import search_youtube_videos
 from recommender.models import SearchHistory, User
 from recommender.process_submissions import (
@@ -37,6 +37,10 @@ from recommender.save_data import (
 )
 from recommender.schemas import SearchAnalytic, UserCreate, UserResponse
 from recommender.structured_output import process_all_posts
+from recommender.trending_agent import (
+    get_trending_categories,
+    get_trending_products,
+)
 from recommender.utils import filter_data
 
 logging.basicConfig(level=logging.INFO)
@@ -149,10 +153,11 @@ async def reddit_callback(
 
     success = await reddit_service.handle_callback(code, state, user)
 
+    redirect_url = REDIRECT_URL
     if success:
-        return RedirectResponse(url=f"{ORIGIN}")
+        return RedirectResponse(url=f"{redirect_url}")
 
-    return RedirectResponse(url=f"{ORIGIN}?reddit_auth=failed")
+    return RedirectResponse(url=f"{redirect_url}?reddit_auth=failed")
 
 
 @app.get("/autocomplete")
@@ -168,6 +173,7 @@ def similar_products(product_name: str):
         raise HTTPException(
             status_code=400, detail="Product name cannot be empty."
         )
+    logger.info(f"Searching for similar products for: {product_name}")
     normalized_product_name = product_name.lower()
     product_catalogue = ProductCatalogue()
     similar_products = product_catalogue.get_similar_product(
@@ -182,6 +188,28 @@ def similar_products(product_name: str):
     return {"similar_products": similar_products}
 
 
+@app.get("/trending/{category}")
+async def get_trending(
+    category: str,
+    timeframe: str = "last month",
+    current_user: User = Depends(get_current_user),
+):
+    """Get trending products for a specific category"""
+    result = get_trending_products(category, timeframe)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No trending products found for category: {category}",
+        )
+    return result
+
+
+@app.get("/trending-categories")
+async def get_categories():
+    """Get list of supported product categories"""
+    return {"categories": get_trending_categories()}
+
+
 @app.get("/search/{search_query}")
 async def search(
     search_query: str,
@@ -194,20 +222,28 @@ async def search(
 
     # Get existing structured output from database
     structured_output = load_structured_output(normalized_query, db=db)
-
+    existing_search_history = (
+        db.query(SearchHistory)
+        .filter(
+            SearchHistory.user_id == current_user.id,
+            SearchHistory.search_query == normalized_query,
+        )
+        .first()
+    )
     # If we have cached results
     if structured_output:
-        # Create search history entry with the existing structured output
-        search_history = SearchHistory(
-            user_id=current_user.id,
-            search_query=search_query,
-            structured_output_id=structured_output["id"],
-        )
-        db.add(search_history)
-        db.commit()
+        if not existing_search_history:
+            # Create search history entry with the existing structured output
+            search_history = SearchHistory(
+                user_id=current_user.id,
+                search_query=search_query,
+                structured_output_id=structured_output["id"],
+            )
+            db.add(search_history)
+            db.commit()
 
-        # Return cached results
-        return filter_data(structured_output, search_query=normalized_query)
+            # Return cached results
+        return filter_data(structured_output)
 
     # If no cached results, perform new search
     reddit_service = RedditService(db=db)
@@ -239,13 +275,13 @@ async def search(
     results = await process_all_posts(
         all_submissions, normalized_query, batch_size
     )
-    filtered_results = results
+    filtered_results = filter_data(results)
 
     # Save structured output and create search history
     structured_output = save_structured_output(
         normalized_query, filtered_results, db=db
     )
-    if structured_output:
+    if structured_output and not existing_search_history:
         search_history = SearchHistory(
             user_id=current_user.id,
             search_query=search_query,

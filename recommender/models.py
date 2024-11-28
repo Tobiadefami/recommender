@@ -109,6 +109,18 @@ class ProductModel(Base):
     raw_data = Column(JSONB)
 
 
+class TrendingProducts(Base):
+    __tablename__ = "trending_products"
+
+    id = Column(Integer, primary_key=True)
+    category = Column(String, index=True)
+    timeframe = Column(String)
+    trending_data = Column(JSONB)
+    raw_data = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
 class User(Base):
     __tablename__ = "users"
 
