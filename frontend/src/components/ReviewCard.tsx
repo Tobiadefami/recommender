@@ -73,7 +73,11 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
 const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="bg-card shadow-md rounded-lg p-6 mb-4">
+    <div
+      className={`bg-card shadow-md rounded-lg p-6 mb-4 transition-all duration-500 ease-in-out ${
+        expanded ? "max-h-[1000px]" : "max-h-[300px]"
+      } overflow-hidden`}
+    >
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-xl font-semibold mb-2">{review.product_name}</h3>
         <StarRating rating={review.star_rating} />
@@ -96,7 +100,7 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
       <p className="mb-4">{review.review_summary}</p>
 
       {expanded && (
-        <>
+        <div className="transition-opacity duration-500 ease-in-out opacity-100">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <h4 className="font-semibold mb-2">Pros</h4>
@@ -132,7 +136,7 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
               label="Well Written Score"
             />
           </div>
-        </>
+        </div>
       )}
       <div className="mt-4 text-sm flex justify-between items-center">
         <p>
@@ -161,3 +165,10 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
 };
 
 export default ReviewCard;
+
+/* Changes made:
+1. Added a transition animation to the review card's height using Tailwind classes `transition-all duration-500 ease-in-out` for a smooth expand/collapse effect when "View More" is clicked.
+2. Wrapped the expandable content with a `transition-opacity` for a smooth fade-in effect.
+3. Limited the height using `max-h` to prevent the card from taking up too much space when collapsed.
+4. Used `overflow-hidden` to ensure that content outside the card is hidden during the animation.
+*/

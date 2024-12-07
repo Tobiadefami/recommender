@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { SearchResult } from "@/types/search";
 import { Button } from "@/components/ui/button";
 import api from "@/app/api";
@@ -16,7 +16,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
   const [isLoadingComparison, setIsLoadingComparison] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const handleCompareProduct = async (productName: string) => {
+  const handleCompareProduct = useCallback(async (productName: string) => {
     setIsLoadingComparison(true);
     setIsPanelOpen(true);
     setComparisonProduct(null);
@@ -36,16 +36,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
     } finally {
       setIsLoadingComparison(false);
     }
-  };
+  }, []);
 
-  const handleClosePanel = () => {
+  const handleClosePanel = useCallback(() => {
     setIsPanelOpen(false);
     setTimeout(() => {
       setComparisonProduct(null);
     }, 200);
-  };
+  }, []);
 
-  const getSimilarProductButtonStyle = (category: string) => {
+  const getSimilarProductButtonStyle = useCallback((category: string) => {
     switch (category) {
       case "Same Brand Products":
         return "bg-card hover:bg-accent text-blue-500 border-blue-200 dark:border-blue-800";
@@ -56,70 +56,68 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
       default:
         return "bg-card hover:bg-accent";
     }
-  };
+  }, []);
 
-  const renderSimilarProductsSection = (title: string, products: string[]) => {
-    if (!products || products.length === 0) return null;
+  const renderSimilarProductsSection = useCallback(
+    (title: string, products: string[]) => {
+      if (!products || products.length === 0) return null;
 
-    const buttonStyle = getSimilarProductButtonStyle(title);
+      const buttonStyle = getSimilarProductButtonStyle(title);
 
-    return (
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-muted-foreground mb-2">
-          {title}
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          {products.map((product, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              size="sm"
-              onClick={() => handleCompareProduct(product)}
-              className={cn("rounded-full border", buttonStyle)}
-            >
-              {product}
-            </Button>
-          ))}
+      return (
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-muted-foreground mb-2">
+            {title}
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {products.map((product, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                onClick={() => handleCompareProduct(product)}
+                className={cn("rounded-full border", buttonStyle)}
+              >
+                {product}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    },
+    [getSimilarProductButtonStyle, handleCompareProduct],
+  );
 
-  const renderSimilarProductsCard = () => {
+  const renderSimilarProductsCard = useCallback(() => {
     if (!results.similar_products) return null;
 
+    const { same_brand, competitors, similar_category } =
+      results.similar_products;
     const hasSimilarProducts =
-      (results.similar_products.same_brand &&
-        results.similar_products.same_brand.length > 0) ||
-      (results.similar_products.competitors &&
-        results.similar_products.competitors.length > 0) ||
-      (results.similar_products.similar_category &&
-        results.similar_products.similar_category.length > 0);
+      (same_brand && same_brand.length > 0) ||
+      (competitors && competitors.length > 0) ||
+      (similar_category && similar_category.length > 0);
 
     if (!hasSimilarProducts) return null;
 
     return (
       <div className="bg-card shadow-md rounded-lg p-6 mb-6">
         <h3 className="text-xl font-semibold mb-4">Similar Products</h3>
-        {renderSimilarProductsSection(
-          "Same Brand Products",
-          results.similar_products.same_brand || [],
-        )}
-        {renderSimilarProductsSection(
-          "Competitor Products",
-          results.similar_products.competitors || [],
-        )}
+        {renderSimilarProductsSection("Same Brand Products", same_brand || [])}
+        {renderSimilarProductsSection("Competitor Products", competitors || [])}
         {renderSimilarProductsSection(
           "Similar Category Products",
-          results.similar_products.similar_category || [],
+          similar_category || [],
         )}
       </div>
     );
-  };
+  }, [results.similar_products, renderSimilarProductsSection]);
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Search Results</h2>
+      <div className="sticky top-0 bg-background z-10 pb-4 pt-6">
+        <h2 className="text-2xl font-semibold">Search Results</h2>
+      </div>
 
       {/* Overall Decision Card */}
       <div className="bg-card shadow-md rounded-lg p-6">

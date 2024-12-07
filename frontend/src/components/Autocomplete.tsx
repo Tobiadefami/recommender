@@ -1,10 +1,10 @@
 // recommender/frontend/src/components/Autocomplete.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import api from "@/app/api";
-import { useCallback } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 interface AutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -28,6 +28,7 @@ export default function Autocomplete({
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
   const fetchSuggestions = useCallback(async () => {
+    if (value.length <= 1 || !internalShowSuggestions) return;
     try {
       const response = await api.get(
         `/autocomplete?query=${encodeURIComponent(value)}`,
@@ -36,15 +37,11 @@ export default function Autocomplete({
     } catch (error) {
       console.error("Failed to fetch suggestions:", error);
     }
-  }, [value]);
+  }, [value, internalShowSuggestions]);
 
   useEffect(() => {
-    if (value.length > 1 && internalShowSuggestions) {
-      fetchSuggestions();
-    } else {
-      setSuggestions([]);
-    }
-  }, [value, fetchSuggestions, internalShowSuggestions]);
+    fetchSuggestions();
+  }, [fetchSuggestions]);
 
   useEffect(() => {
     setInternalShowSuggestions(initialShowSuggestions);
@@ -57,31 +54,36 @@ export default function Autocomplete({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (focusedIndex >= 0 && focusedIndex < suggestions.length) {
-        onSuggestionSelect(suggestions[focusedIndex]);
-      } else {
-        onSubmit(e);
-      }
-      setSuggestions([]);
-      setFocusedIndex(-1);
-      setInternalShowSuggestions(false);
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setFocusedIndex((prevIndex) =>
-        prevIndex === suggestions.length - 1 ? 0 : prevIndex + 1,
-      );
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setFocusedIndex((prevIndex) =>
-        prevIndex <= 0 ? suggestions.length - 1 : prevIndex - 1,
-      );
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setSuggestions([]);
-      setFocusedIndex(-1);
-      setInternalShowSuggestions(false);
+    switch (e.key) {
+      case "Enter":
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < suggestions.length) {
+          onSuggestionSelect(suggestions[focusedIndex]);
+        } else {
+          onSubmit(e);
+        }
+        setSuggestions([]);
+        setFocusedIndex(-1);
+        setInternalShowSuggestions(false);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setFocusedIndex((prevIndex) =>
+          prevIndex === suggestions.length - 1 ? 0 : prevIndex + 1,
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setFocusedIndex((prevIndex) =>
+          prevIndex <= 0 ? suggestions.length - 1 : prevIndex - 1,
+        );
+        break;
+      case "Escape":
+        e.preventDefault();
+        setSuggestions([]);
+        setFocusedIndex(-1);
+        setInternalShowSuggestions(false);
+        break;
     }
   };
 
@@ -90,6 +92,8 @@ export default function Autocomplete({
     onChange(newValue);
     if (newValue.length > 1) {
       setInternalShowSuggestions(true);
+    } else {
+      setSuggestions([]);
     }
   };
 
@@ -98,7 +102,7 @@ export default function Autocomplete({
       const focusedElement = suggestionsRef.current.children[
         focusedIndex
       ] as HTMLElement;
-      focusedElement.scrollIntoView({ block: "nearest" });
+      focusedElement?.scrollIntoView({ block: "nearest" });
     }
   }, [focusedIndex]);
 
@@ -108,6 +112,7 @@ export default function Autocomplete({
     setFocusedIndex(-1);
     setInternalShowSuggestions(false);
   };
+
   const handleSearchClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (value.trim()) {

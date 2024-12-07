@@ -58,13 +58,83 @@ export default function SearchInterface({
     setGreeting(getGreeting(new Date()));
   }, []);
 
+  const SearchForm = () => (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(e);
+      }}
+      className="bg-card/50 backdrop-blur-sm rounded-3xl p-6 shadow-lg
+                border border-border/50 hover:border-border transition-colors"
+    >
+      <div className="relative">
+        <Search className="absolute w-5 h-5 left-3 top-1/2 transform -translate-y-1/2 text-gray-400 md:w-6 md:h-6" />
+        <Autocomplete
+          value={searchQuery}
+          onChange={onSearchQueryChange}
+          onSuggestionSelect={onSuggestionSelect}
+          onSubmit={onSubmit}
+          showSuggestions={showSuggestions}
+        />
+      </div>
+      {!results && (
+        <>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6">
+            <span>Get started with an example below</span>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-xl hover:bg-accent/50 transition-colors"
+              onClick={() => onSearchQueryChange("Pixel 7 pro")}
+            >
+              Pixel 7 pro
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-xl hover:bg-accent/50 transition-colors"
+              onClick={() => onSearchQueryChange("Porsche taycan")}
+            >
+              Porsche taycan
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-xl hover:bg-accent/50 transition-colors"
+              onClick={() => onSearchQueryChange("Sony a7s iii")}
+            >
+              Sony a7s iii
+            </Button>
+            <Button
+              onClick={onClearSuggestions}
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:bg-accent/50 rounded-xl"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </>
+      )}
+    </form>
+  );
+
+  // Calculate header height based on whether results are present
+  const headerHeight = results ? "header-with-search" : "header-without-search";
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen flex flex-col font-roboto bg-background text-foreground">
       {/* Fixed header */}
-      <header className="fixed top-0 left-0 right-0 bg-background z-40 p-4 md:p-8">
+      <header
+        className={`fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm z-40 p-4 md:p-8 border-b ${results ? "pb-8" : ""}`}
+      >
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-semibold">Recommendr</h1>
+            <a href="/">
+              <h1 className="text-2xl md:text-3xl font-semibold">Recommendr</h1>
+            </a>
             <Button
               variant="ghost"
               size="sm"
@@ -80,11 +150,18 @@ export default function SearchInterface({
             <UserMenu username={username} onLogout={onLogout} />
           </div>
         </div>
+
+        {/* Fixed search bar when results are present */}
+        {results && (
+          <div className="mt-6 max-w-2xl mx-auto">
+            <SearchForm />
+          </div>
+        )}
       </header>
 
       {/* Slide-out Analytics Panel */}
       <div
-        className={`fixed top-[73px] left-0 h-[calc(100vh-73px)] w-[300px] bg-background border-r transform transition-transform duration-200 ${
+        className={`fixed top-[${headerHeight}] left-0 h-[calc(100vh-${headerHeight})] w-[300px] bg-background border-r transform transition-transform duration-200 ${
           showAnalytics ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -104,81 +181,31 @@ export default function SearchInterface({
         }`}
       >
         <div className="max-w-3xl mx-auto p-4 md:p-8">
-          {/* Welcome and Search Section */}
-          <div className="mt-[100px] flex flex-col items-center">
+          {/* Adjust top margin based on whether results are present */}
+          <div
+            className={`${results ? "mt-[200px]" : "mt-[180px]"} md:${results ? "mt-[220px]" : "mt-[200px]"} flex flex-col items-center`}
+          >
             {showRedditBanner && !hasRedditConnection && (
-              <div className="w-full max-w-2xl">
+              <div className="w-full max-w-2xl mb-6">
                 <RedditConnectBanner
                   onDismiss={onRedditBannerDismiss}
                   onConnect={onRedditConnect}
                 />
               </div>
             )}
+
             {!results && !loading ? (
               <>
-                <h2 className="text-4xl font-light mb-6 text-center">
+                <h2 className="text-3xl md:text-4xl font-light mb-12 text-center">
                   {greeting}, {username}
                 </h2>
 
-                <div className="w-full max-w-2xl">
-                  {/* Search Form */}
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      onSubmit(e);
-                    }}
-                    className="bg-card/50 backdrop-blur-sm rounded-3xl p-8 mb-12 shadow-lg
-                              border border-border/50 hover:border-border transition-colors"
-                  >
-                    <Autocomplete
-                      value={searchQuery}
-                      onChange={onSearchQueryChange}
-                      onSuggestionSelect={onSuggestionSelect}
-                      onSubmit={onSubmit}
-                      showSuggestions={showSuggestions}
-                    />
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6">
-                      <span>Get started with an example below</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-xl hover:bg-accent/50 transition-colors"
-                        onClick={() => onSearchQueryChange("Pixel 7 pro")}
-                      >
-                        Pixel 7 pro
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-xl hover:bg-accent/50 transition-colors"
-                        onClick={() => onSearchQueryChange("Porsche taycan")}
-                      >
-                        Porsche taycan
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-xl hover:bg-accent/50 transition-colors"
-                        onClick={() => onSearchQueryChange("Sony a7s iii")}
-                      >
-                        Sony a7s iii
-                      </Button>
-                      <Button
-                        onClick={onClearSuggestions}
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:bg-accent/50 rounded-xl"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </form>
+                <div className="w-full max-w-2xl mt-16">
+                  <SearchForm />
 
                   {/* Recent Searches */}
                   {recentSearches.length > 0 && (
-                    <div className="w-full">
+                    <div className="w-full mt-12">
                       <div className="mb-4 flex justify-between items-center">
                         <h3 className="text-sm font-semibold flex items-center gap-2">
                           <Search className="w-4 h-4" />
@@ -228,27 +255,9 @@ export default function SearchInterface({
               </>
             ) : (
               <div className="w-full max-w-2xl">
-                {/* Search Form when results are present */}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    onSubmit(e);
-                  }}
-                  className="bg-card/50 backdrop-blur-sm rounded-3xl p-8 mb-8 shadow-lg
-                            border border-border/50 hover:border-border transition-colors"
-                >
-                  <Autocomplete
-                    value={searchQuery}
-                    onChange={onSearchQueryChange}
-                    onSuggestionSelect={onSuggestionSelect}
-                    onSubmit={onSubmit}
-                    showSuggestions={showSuggestions}
-                  />
-                </form>
-
                 {/* Loading State */}
                 {loading && (
-                  <div className="mt-8">
+                  <div>
                     <LoadingCard />
                     <LoadingCard />
                     <LoadingCard />

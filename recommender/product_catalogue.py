@@ -3,9 +3,9 @@ from typing import Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
+from recommender.agent import Agent
 from recommender.database import get_db
 from recommender.models import ProductModel
-from recommender.product_agent import get_product_information
 
 
 class ProductCatalogue:
@@ -66,7 +66,10 @@ class ProductCatalogue:
 
         # if not found, fetch new information
         try:
-            new_info = get_product_information(product_name)
+            product_agent = Agent(information_type="product")
+            new_info = product_agent.get_information(product_name)
+
+            # new_info = get_product_information(product_name)
             if new_info:
                 # parse the json string if it is a string
                 if isinstance(new_info, str):
@@ -86,7 +89,7 @@ class ProductCatalogue:
         product_info = self.get_product_info(product_name)
         if not product_info:
             return {"same_brand": [], "same_category": [], "same_features": []}
-
+        print(f"product_info: {product_info}")
         # Extract product info
         searched_product_name, product_data = next(iter(product_info.items()))
         target_brand = product_data["brand"]
