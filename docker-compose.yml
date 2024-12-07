@@ -19,6 +19,10 @@ services:
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
       - NGINX_HOST=${NGINX_HOST}
       - RECOMMENDER_ENV=${RECOMMENDER_ENVIRONMENT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_CSE_ID=${GOOGLE_CSE_ID}
+      - EXA_API_KEY=${EXA_API_KEY}
 
     command: python -m uvicorn recommender.app:app --host 0.0.0.0 --port 8000 --reload
 

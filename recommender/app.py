@@ -74,6 +74,40 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+@app.get("/reddit/status")
+async def reddit_status(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """Check Reddit authentication status"""
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "connected": user.has_reddit_refresh_token,
+        "username": user.reddit_username,
+        "lastSync": user.reddit_last_sync,
+    }
+
+
+@app.post("/reddit/deactivate")
+async def deactivate_reddit(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deactivate Reddit connection for the current user"""
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Clear Reddit-related fields
+    user.has_reddit_refresh_token = False
+    user.reddit_refresh_token = None
+    user.reddit_state = None
+    db.commit()
+
+    return {"detail": "Reddit connection successfully deactivated"}
+
+
 @app.get("/user/recent-searches", response_model=list[SearchAnalytic])
 async def get_recent_searches(
     current_user: User = Depends(get_current_user),
@@ -90,9 +124,7 @@ async def get_recent_searches(
 async def register(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if db_user:
-        raise HTTPException(
-            status_code=400, detail="Username already registered"
-        )
+        raise HTTPException(status_code=400, detail="Username already registered")
 
     hashed_password = get_password_hash(user.password)
     db_user = User(
@@ -113,9 +145,7 @@ async def login(
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(
-        form_data.password, user.hashed_password
-    ):
+    if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -170,15 +200,11 @@ def auto_complete(query: str):
 @app.get("/similar_products/{product_name}")
 def similar_products(product_name: str):
     if not product_name or len(product_name.strip()) == 0:
-        raise HTTPException(
-            status_code=400, detail="Product name cannot be empty."
-        )
+        raise HTTPException(status_code=400, detail="Product name cannot be empty.")
     logger.info(f"Searching for similar products for: {product_name}")
     normalized_product_name = product_name.lower()
     product_catalogue = ProductCatalogue()
-    similar_products = product_catalogue.get_similar_product(
-        normalized_product_name
-    )
+    similar_products = product_catalogue.get_similar_product(normalized_product_name)
     if not similar_products:
         raise HTTPException(
             status_code=404,
@@ -249,9 +275,7 @@ async def search(
     reddit_service = RedditService(db=db)
     reddit = await reddit_service.get_authorized_client(current_user)
 
-    youtube_data_futures = search_youtube_videos(
-        normalized_query, max_results=limit
-    )
+    youtube_data_futures = search_youtube_videos(normalized_query, max_results=limit)
 
     subreddit = await reddit.subreddit("all")
     reddit_search_results = []
@@ -272,9 +296,7 @@ async def search(
     }
 
     save_data(all_submissions)
-    results = await process_all_posts(
-        all_submissions, normalized_query, batch_size
-    )
+    results = await process_all_posts(all_submissions, normalized_query, batch_size)
     filtered_results = filter_data(results)
 
     # Save structured output and create search history

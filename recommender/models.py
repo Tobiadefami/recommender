@@ -71,9 +71,7 @@ class Review(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    structured_output = relationship(
-        "StructuredOutput", back_populates="reviews"
-    )
+    structured_output = relationship("StructuredOutput", back_populates="reviews")
 
 
 class SearchHistory(Base):
@@ -130,7 +128,8 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
+    reddit_username = Column(String, nullable=True)
+    reddit_last_sync = Column(DateTime, nullable=True)
     # Reddit-specific user authentication
     has_reddit_refresh_token = Column(Boolean, default=False)
     reddit_state = Column(String, nullable=True)
