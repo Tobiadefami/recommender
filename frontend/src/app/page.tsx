@@ -5,6 +5,7 @@ import { SearchAnalytic, SearchResult } from "@/types/search";
 
 import Login from "@/components/Login";
 import SearchInterface from "@/components/SearchInterface";
+import { LandingPage } from "@/components/LandingPage";
 import api from "@/app/api";
 import { useCallback } from "react";
 
@@ -18,6 +19,7 @@ export default function Home() {
   // User and authentication state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [username, setUsername] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
 
   // Search history state
   const [allSearchHistory, setAllSearchHistory] = useState<SearchAnalytic[]>(
@@ -38,6 +40,7 @@ export default function Home() {
     setRecentSearches([]);
     setResults(null);
     setSearchQuery("");
+    setShowLogin(false); // Reset to landing page on logout
   }, []);
 
   // Fetch search history when authenticated
@@ -173,12 +176,16 @@ export default function Home() {
     );
   }
 
-  // Show login page if not authenticated
+  // Show login page if showLogin is true, otherwise show landing page
   if (!isAuthenticated) {
-    return <Login onAuthSuccess={handleAuthSuccess} />;
+    return showLogin ? (
+      <Login onAuthSuccess={handleAuthSuccess} />
+    ) : (
+      <LandingPage onGetStarted={() => setShowLogin(true)} />
+    );
   }
 
-  // Main application
+  // Main application for authenticated users
   return (
     <SearchInterface
       username={username}

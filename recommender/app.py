@@ -229,7 +229,7 @@ async def get_trending(
     """Get trending products for a specific category"""
 
     trending_agent = Agent()
-    result = trending_agent.get_information(category, timeframe)
+    result = await trending_agent.get_information(category, timeframe)
     if not result:
         raise HTTPException(
             status_code=404,

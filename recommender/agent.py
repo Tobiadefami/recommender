@@ -58,7 +58,7 @@ class Agent:
         self.current_year = datetime.now().year
         self.search_engine_name = search_engine_name
 
-    def _validate_and_clean_json_data(self, json_string: str) -> str:
+    async def _validate_and_clean_json_data(self, json_string: str) -> str:
         """Clean and validate json string before parsing"""
         if json_string.startswith("```json"):
             json_string = json_string.split("```json")[1]
@@ -66,7 +66,7 @@ class Agent:
             json_string = json_string.split("```")[0]
         return json_string.strip()
 
-    def _search_product(self, query: str) -> str:
+    async def _search_product(self, query: str) -> str:
         """Search for specific product information"""
         enhanced_query = f"{query} specs technical details official reviews"
 
@@ -88,7 +88,7 @@ class Agent:
                 highlights=True,
             )
 
-    def _search_trends(self, query: CategoryQuery) -> str:
+    async def _search_trends(self, query: CategoryQuery) -> str:
         """Search for trending products in a category"""
         search_queries = [
             f"trending {query.category} {query.timeframe}",
@@ -102,7 +102,7 @@ class Agent:
         ]
         return "\n\n".join(results)
 
-    def get_search_tool(self) -> StructuredTool:
+    async def get_search_tool(self) -> StructuredTool:
         """Get appropriate search tool based on information type"""
         if self.information_type == "product":
             return StructuredTool.from_function(
@@ -121,7 +121,7 @@ class Agent:
                 return_direct=True,
             )
 
-    def get_information(
+    async def get_information(
         self, query: str, timeframe: str = "last month"
     ) -> Optional[Dict]:
         """Main method to get information based on type"""
@@ -130,7 +130,7 @@ class Agent:
         else:
             return self._get_trending_information(query, timeframe)
 
-    def _get_product_information(self, query: str) -> Optional[Dict]:
+    async def _get_product_information(self, query: str) -> Optional[Dict]:
         """Handle product information retrieval"""
         existing_product = get_product_from_db(query)
         if existing_product:
@@ -140,7 +140,7 @@ class Agent:
         messages = self._initialize_messages(query)
         return self._process_information(messages, search_tool, query)
 
-    def _get_trending_information(
+    async def _get_trending_information(
         self, category: str, timeframe: str
     ) -> Optional[Dict]:
         """Handle trending information retrieval"""
@@ -150,7 +150,7 @@ class Agent:
             messages, search_tool, category, timeframe
         )
 
-    def _initialize_messages(
+    async def _initialize_messages(
         self, query: str, timeframe: Optional[str] = None
     ) -> List:
         """Initialize message chain based on information type"""
@@ -180,7 +180,7 @@ class Agent:
             HumanMessage(content=content),
         ]
 
-    def _process_information(
+    async def _process_information(
         self,
         messages: List,
         search_tool: StructuredTool,
@@ -211,7 +211,7 @@ class Agent:
 
         return self._save_information(ai_msg, messages, query, timeframe)
 
-    def _handle_tool_calls(
+    async def _handle_tool_calls(
         self,
         ai_msg,
         search_tool: StructuredTool,
@@ -235,7 +235,7 @@ class Agent:
                 {"category": query, "timeframe": timeframe}
             )
 
-    def _save_information(
+    async def _save_information(
         self,
         ai_msg,
         messages: List,

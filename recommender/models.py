@@ -71,7 +71,9 @@ class Review(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    structured_output = relationship("StructuredOutput", back_populates="reviews")
+    structured_output = relationship(
+        "StructuredOutput", back_populates="reviews"
+    )
 
 
 class SearchHistory(Base):

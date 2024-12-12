@@ -1,6 +1,5 @@
-import { FaEnvelope, FaLock, FaUser } from "react-icons/fa";
-import React, { useEffect, useState } from "react";
-
+import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
+import React, { useState } from "react";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,51 +9,13 @@ interface LoginProps {
   onAuthSuccess: () => void;
 }
 
-const descriptions = [
-  "Discover personalized product recommendations tailored to your interests and past searches.",
-  "Stay ahead of the curve with our curated selection of trending products across various categories.",
-  "Gain valuable insights into your shopping behavior with detailed search analytics.",
-  "Seamlessly integrate your Reddit account to receive recommendations based on community discussions and trending topics.",
-  "Watch informative YouTube reviews and unboxings to make informed purchasing decisions.",
-  "Enjoy a fast and intuitive search experience with our intelligent autocomplete suggestions.",
-];
-
 export default function Login({ onAuthSuccess }: LoginProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentDescription, setCurrentDescription] = useState("");
-  const [fade, setFade] = useState(true);
-
-  useEffect(() => {
-    let currentDescriptionIndex = 0;
-    const displayDescription = () => {
-      const currentText = descriptions[currentDescriptionIndex];
-      let charIndex = 0;
-
-      const type = () => {
-        if (charIndex < currentText.length) {
-          setCurrentDescription(currentText.slice(0, ++charIndex));
-          setTimeout(type, 100); // Typewriter effect
-        } else {
-          setFade(false);
-          setTimeout(() => {
-            setFade(true);
-            currentDescriptionIndex =
-              (currentDescriptionIndex + 1) % descriptions.length;
-            setCurrentDescription("");
-            displayDescription(); // Recursively display next description
-          }, 1000); // Wait before showing the next one
-        }
-      };
-      type();
-    };
-
-    displayDescription(); // Start the process
-  }, []);
+  const [isLogin, setIsLogin] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +24,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
 
     try {
       if (isLogin) {
+        // Login logic
         const formData = new URLSearchParams();
         formData.append("username", username);
         formData.append("password", password);
@@ -76,12 +38,14 @@ export default function Login({ onAuthSuccess }: LoginProps) {
         localStorage.setItem("token", response.data.access_token);
         onAuthSuccess();
       } else {
+        // Registration logic
         await api.post("/register", {
           username,
           email,
           password,
         });
 
+        // Automatically log in after successful registration
         const loginFormData = new URLSearchParams();
         loginFormData.append("username", username);
         loginFormData.append("password", password);
@@ -107,112 +71,98 @@ export default function Login({ onAuthSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-roboto">
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 text-white p-8">
-        <div
-          className={`text-2xl md:text-3xl lg:text-4xl font-light text-shadow-lg transition-opacity duration-500 ${
-            fade ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <p className="whitespace-pre-line leading-relaxed">
-            {currentDescription}
-          </p>
-        </div>
-      </div>
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 p-4 md:p-8">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg border border-gray-200">
-          <h2 className="text-2xl font-semibold mb-6 text-center">
-            {isLogin ? "Login" : "Sign Up"}
-          </h2>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md p-8 bg-card rounded-lg shadow-lg border">
+        <h2 className="text-2xl font-semibold mb-6 text-center">
+          {isLogin ? "Sign In" : "Sign Up"}
+        </h2>
 
-          {error && (
-            <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">
-              {error}
+        {error && (
+          <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium mb-1"
+            >
+              Username
+            </label>
+            <div className="relative">
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="pl-10"
+              />
+              <FaUser className="absolute left-3 top-3 text-muted-foreground" />
+            </div>
+          </div>
+
+          {!isLogin && (
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
+                Email
+              </label>
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="pl-10"
+                />
+                <FaEnvelope className="absolute left-3 top-3 text-muted-foreground" />
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium mb-1"
-              >
-                Username
-              </label>
-              <div className="relative">
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="pl-10"
-                />
-                <FaUser className="absolute left-3 top-3 text-gray-400" />
-              </div>
-            </div>
-
-            {!isLogin && (
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Email
-                </label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required={!isLogin}
-                    className="pl-10"
-                  />
-                  <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium mb-1"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pl-10"
-                />
-                <FaLock className="absolute left-3 top-3 text-gray-400" />
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
-            </Button>
-          </form>
-
-          <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError("");
-              }}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium mb-1"
             >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Login"}
-            </Button>
+              Password
+            </label>
+            <div className="relative">
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pl-10"
+              />
+              <FaLock className="absolute left-3 top-3 text-muted-foreground" />
+            </div>
           </div>
-        </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
+          </Button>
+        </form>
+
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError("");
+              setUsername("");
+              setPassword("");
+              setEmail("");
+            }}
+            className="text-primary hover:underline"
+          >
+            {isLogin ? "Sign up" : "Sign in"}
+          </button>
+        </p>
       </div>
     </div>
   );
