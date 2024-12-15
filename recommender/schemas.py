@@ -54,7 +54,7 @@ class Review(ReviewBase):
 
 class StructuredOutputBase(BaseModel):
     search_query: str
-    overall_decision: str
+    overall_decision: Optional[str] = None
 
 
 class StructuredOutput(StructuredOutputBase):

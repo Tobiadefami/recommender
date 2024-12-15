@@ -1,18 +1,18 @@
 from typing import Optional
 
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import expression
 
 from recommender.models import Review, SearchHistory, StructuredOutput
 
 
-def get_user_search_analytics(
-    user_id: int, db: Session, limit: Optional[int] = None
+async def get_user_search_analytics(
+    user_id: int, db: AsyncSession, limit: Optional[int] = None
 ):
     """Get analytics for a user's searches with review metrics"""
     query = (
-        db.query(
+        select(
             SearchHistory.search_query,
             SearchHistory.searched_at,
             func.count(Review.id).label("result_count"),
@@ -37,7 +37,8 @@ def get_user_search_analytics(
     if limit:
         query = query.limit(limit)
 
-    return query.all()
+    result = await db.execute(query)
+    return result.all()
 
 
 def format_analytics_result(analytics):

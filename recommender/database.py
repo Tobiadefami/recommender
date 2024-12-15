@@ -1,25 +1,41 @@
-import os
-
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:password@localhost/recommender_db"
+from recommender.environment_vars import DATABASE_URL
+
+# Make sure DATABASE_URL uses postgresql+asyncpg:// instead of postgresql://
+engine = create_async_engine(DATABASE_URL)
+async_session = sessionmaker(
+    engine, expire_on_commit=False, class_=AsyncSession
 )
-engine = create_engine(DATABASE_URL)
-sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
 
-def init_db():
-    Base.metadata.create_all(bind=engine)
+def register_models():
+    """Import all models to register them with SQLAlchemy"""
+    from recommender.models import (  # noqa: F401
+        Posts,
+        ProductModel,
+        Review,
+        SearchHistory,
+        StructuredOutput,
+        TrendingProducts,
+        User,
+    )
+    # The imports themselves register the models
 
 
-def get_db():
-    db = sessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def init_db():
+    register_models()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def get_db():
+    async with async_session() as session:
+        try:
+            yield session
+        finally:
+            await session.close()

@@ -1,4 +1,4 @@
-def autocomplete(query: str, existing_queries: list[str]) -> list[str]:
+async def autocomplete(query: str, existing_queries: list[str]) -> list[str]:
     matching_queries = [
         q
         for q in existing_queries

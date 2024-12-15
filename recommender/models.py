@@ -36,8 +36,9 @@ class StructuredOutput(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    # Relationships
-    reviews = relationship("Review", back_populates="structured_output")
+    reviews = relationship(
+        "Review", back_populates="structured_output", lazy="selectin"
+    )
 
 
 class Review(Base):
@@ -85,8 +86,10 @@ class SearchHistory(Base):
     searched_at = Column(DateTime(timezone=True), server_default=func.now())
     structured_output_id = Column(Integer, ForeignKey("structured_outputs.id"))
     # Relationship with User
-    user = relationship("User", back_populates="search_history")
-    structured_output = relationship("StructuredOutput")
+    user = relationship(
+        "User", back_populates="search_history", lazy="selectin"
+    )
+    structured_output = relationship("StructuredOutput", lazy="selectin")
 
 
 class ProductModel(Base):
@@ -138,4 +141,6 @@ class User(Base):
     reddit_refresh_token = Column(String, nullable=True)
 
     # Relationship with search history
-    search_history = relationship("SearchHistory", back_populates="user")
+    search_history = relationship(
+        "SearchHistory", back_populates="user", lazy="selectin"
+    )

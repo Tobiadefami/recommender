@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from recommender.database import engine, get_db
+from recommender.database import engine
 from recommender.models import Base, Posts, Review, StructuredOutput
 
 logging.basicConfig(level=logging.INFO)
@@ -16,97 +16,79 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 
-def save_data(all_submissions: dict):
-    db: Session = next(get_db())
-
+async def save_data(all_submissions: dict, db: AsyncSession):
     try:
         for search_query, submissions_list in all_submissions.items():
-            latest_submissions = (
-                db.query(func.max(Posts.created_at))
-                .filter(
+            result = await db.execute(
+                select(func.max(Posts.created_at)).filter(
                     func.lower(Posts.search_query) == func.lower(search_query)
                 )
-                .scalar()
             )
-            for submission_dict in submissions_list:
-                # Save Reddit submissions
-                for reddit_submission in submission_dict.get("reddit", []):
-                    created_at = datetime.utcfromtimestamp(
-                        reddit_submission["created"]
-                    )
-                    if (
-                        latest_submissions is None
-                        or created_at >= latest_submissions
-                    ):
-                        post = Posts(
-                            id=reddit_submission["id"],
-                            source="rsseddit",
-                            search_query=search_query,
-                            created_at=created_at,
-                            raw_data=reddit_submission,
-                        )
-                        db.merge(post)
+            latest_submissions = result.scalar()
 
-                # Save YouTube submissions
-                for youtube_submission in submission_dict.get("youtube", []):
-                    # Use the 'published_at' field from the YouTube data
-                    created_at = datetime.strptime(
-                        youtube_submission["created_at"], "%Y-%m-%dT%H:%M:%SZ"
-                    )
-                    if (
-                        latest_submissions is None
-                        or created_at >= latest_submissions
-                    ):
-                        post = Posts(
-                            id=youtube_submission["id"],
-                            source="youtube",
-                            search_query=search_query,
-                            created_at=created_at,
-                            raw_data=youtube_submission,
-                        )
-                        db.merge(post)
+            for submission_dict in submissions_list:
+                await save_submissions(
+                    db,
+                    search_query,
+                    submission_dict["reddit"],
+                    "reddit",
+                    latest_submissions,
+                )
+                await save_submissions(
+                    db,
+                    search_query,
+                    submission_dict["youtube"],
+                    "youtube",
+                    latest_submissions,
+                )
 
         logger.info("Committing changes to database")
-        db.commit()
+        await db.commit()
         logger.info(
             f"Successfully saved submissions for queries: {list(all_submissions.keys())}"
         )
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logger.error(f"Error saving data: {e}", exc_info=True)
-    finally:
-        db.close()
 
 
-def load_existing_data(search_query: str):
-    db: Session = next(get_db())
-    try:
-        posts = (
-            db.query(Posts)
-            .filter(func.lower(Posts.search_query) == func.lower(search_query))
-            .all()
+async def save_submissions(
+    db: AsyncSession,
+    search_query: str,
+    submissions: List[Dict],
+    source: str,
+    latest_submission: Optional[datetime] = None,
+):
+    """Save submissions to the database depending on the source"""
+    for submission in submissions:
+        created_at = (
+            datetime.utcfromtimestamp(submission["created"])
+            if source == "reddit"
+            else datetime.strptime(
+                submission["created_at"], "%Y-%m-%dT%H:%M:%SZ"
+            )
         )
-        reddit_posts = [
-            post.raw_data for post in posts if post.source == "reddit"
-        ]
-        youtube_posts = [
-            post.raw_data for post in posts if post.source == "youtube"
-        ]
-        return {
-            search_query: [{"reddit": reddit_posts, "youtube": youtube_posts}]
-        }
-    finally:
-        db.close()
+
+        if latest_submission is None or created_at >= latest_submission:
+            post = Posts(
+                id=submission["id"],
+                source=source,
+                search_query=search_query,
+                created_at=created_at,
+                raw_data=submission,
+            )
+            db.add(post)
 
 
-def save_structured_output(
-    search_query: str, data: Dict, db: Session = None
+async def save_structured_output(
+    search_query: str, data: Dict, db: AsyncSession
 ) -> Optional[StructuredOutput]:
-    existing_output = (
-        db.query(StructuredOutput)
-        .filter(StructuredOutput.search_query == search_query)
-        .first()
+    result = await db.execute(
+        select(StructuredOutput).filter(
+            StructuredOutput.search_query == search_query
+        )
     )
+    existing_output = result.scalar_one_or_none()
     if existing_output:
         return existing_output
 
@@ -117,30 +99,32 @@ def save_structured_output(
     )
 
     db.add(structured_output)
-    db.commit()
-    db.refresh(structured_output)
+    await db.commit()
+    await db.refresh(structured_output)
 
     # Create Review records
     for review_data in data.get("reviews", []):
-        print(f"review_data: {review_data}")
         review = Review(
             structured_output_id=structured_output.id, **review_data
         )
         db.add(review)
 
-    db.commit()
+    await db.commit()
     return structured_output
 
 
-def load_structured_output(search_query: str, db: Session = None):
+async def load_structured_output(
+    search_query: str, db: AsyncSession
+) -> Optional[Dict]:
     """Get structured output with reviews"""
 
-    result = (
-        db.query(StructuredOutput)
-        .filter(StructuredOutput.search_query == search_query)
-        .first()
+    result = await db.execute(
+        select(StructuredOutput).filter(
+            StructuredOutput.search_query == search_query
+        )
     )
-    if not result:
+    structured_output = result.scalar_one_or_none()
+    if not structured_output:
         return None
 
     reviews = [
@@ -159,29 +143,28 @@ def load_structured_output(search_query: str, db: Session = None):
             "url": review.url,
             "star_rating": review.star_rating,
         }
-        for review in result.reviews
+        for review in structured_output.reviews
     ]
 
     return {
-        "id": result.id,
-        "search_query": result.search_query,
-        "overall_decision": result.overall_decision,
+        "id": structured_output.id,
+        "search_query": structured_output.search_query,
+        "overall_decision": structured_output.overall_decision,
         "reviews": reviews,
     }
 
 
-def get_existing_search_queries():
-    db: Session = next(get_db())
+async def get_existing_search_queries(db: AsyncSession) -> List[str]:
     try:
-        queries = db.query(StructuredOutput.search_query).distinct().all()
-        return [query[0] for query in queries]
+        results = await db.execute(
+            select(StructuredOutput.search_query).distinct()
+        )
+        return [query[0] for query in results.all()]
     except Exception as e:
         logger.error(
             f"Error fetching existing search queries: {e}", exc_info=True
         )
         return []
-    finally:
-        db.close()
 
 
 if __name__ == "__main__":

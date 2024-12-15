@@ -5,7 +5,8 @@ import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
 
 from recommender.agent import Agent
@@ -14,16 +15,20 @@ from recommender.analytics import (
     get_user_search_analytics,
 )
 from recommender.auth import (
+    authenticate_user,
     create_access_token,
+    create_user,
     get_current_user,
-    get_password_hash,
-    verify_password,
+    get_user_by_username,
 )
 from recommender.auto_complete import autocomplete
 from recommender.database import get_db, init_db
 from recommender.environment_vars import ORIGIN, REDIRECT_URL
 from recommender.fetch_youtube_data import search_youtube_videos
-from recommender.models import SearchHistory, User
+from recommender.models import (
+    SearchHistory,
+    User,
+)
 from recommender.process_submissions import (
     process_submission,
     process_submissions,
@@ -58,7 +63,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 @app.on_event("startup")
 async def startup_event():
-    init_db()
+    await init_db()
 
 
 @app.get("/users/me", response_model=UserResponse)
@@ -74,10 +79,11 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 @app.get("/reddit/status")
 async def reddit_status(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Check Reddit authentication status"""
-    user = db.query(User).filter(User.id == current_user.id).first()
+    user = await db.execute(select(User).filter(User.id == current_user.id))
+    user = user.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {
@@ -90,10 +96,11 @@ async def reddit_status(
 @app.post("/reddit/deactivate")
 async def deactivate_reddit(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Deactivate Reddit connection for the current user"""
-    user = db.query(User).filter(User.id == current_user.id).first()
+    user = await db.execute(select(User).filter(User.id == current_user.id))
+    user = user.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -101,7 +108,7 @@ async def deactivate_reddit(
     user.has_reddit_refresh_token = False
     user.reddit_refresh_token = None
     user.reddit_state = None
-    db.commit()
+    await db.commit()
 
     return {"detail": "Reddit connection successfully deactivated"}
 
@@ -109,45 +116,35 @@ async def deactivate_reddit(
 @app.get("/user/recent-searches", response_model=list[SearchAnalytic])
 async def get_recent_searches(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     limit: int = 3,
 ):
     """get users most recent searches with analytics"""
-    analytics = get_user_search_analytics(current_user.id, db, limit)
+    analytics = await get_user_search_analytics(current_user.id, db, limit)
     return format_analytics_result(analytics)
 
 
 # Authentication endpoints
 @app.post("/register")
-async def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.username == user.username).first()
-    if db_user:
+async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    existing_user = await get_user_by_username(db, user.username)
+
+    if existing_user:
         raise HTTPException(
             status_code=400, detail="Username already registered"
         )
 
-    hashed_password = get_password_hash(user.password)
-    db_user = User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hashed_password,
-        is_active=True,
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    user = await create_user(db, user.username, user.email, user.password)
+    return user
 
 
 @app.post("/token")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(
-        form_data.password, user.hashed_password
-    ):
+    user = await authenticate_user(db, form_data.username, form_data.password)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -164,7 +161,7 @@ async def login(
 @app.get("/reddit/auth")
 async def reddit_auth(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Initialize Reddit authentication process for app-level access"""
     reddit_service = RedditService(db)
@@ -176,11 +173,12 @@ async def reddit_auth(
 async def reddit_callback(
     code: str,
     state: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle Reddit OAuth callback"""
 
-    user = db.query(User).filter(User.reddit_state == state).first()
+    user = await db.execute(select(User).filter(User.reddit_state == state))
+    user = user.scalar_one_or_none()
     reddit_service = RedditService(db)
 
     success = await reddit_service.handle_callback(code, state, user)
@@ -193,30 +191,36 @@ async def reddit_callback(
 
 
 @app.get("/autocomplete")
-def auto_complete(query: str):
-    existing_queries = get_existing_search_queries()
+async def auto_complete(query: str, db: AsyncSession = Depends(get_db)):
+    existing_queries = await get_existing_search_queries(db)
 
-    return autocomplete(query, existing_queries)
+    return await autocomplete(query, existing_queries)
 
 
 @app.get("/similar_products/{product_name}")
-def similar_products(product_name: str):
+async def similar_products(
+    product_name: str, _: User = Depends(get_current_user)
+):
+    """
+    Get similar products to the given product name.
+    Returns an empty list if no similar products are found.
+    """
     if not product_name or len(product_name.strip()) == 0:
         raise HTTPException(
             status_code=400, detail="Product name cannot be empty."
         )
+
     logger.info(f"Searching for similar products for: {product_name}")
     normalized_product_name = product_name.lower()
+
     product_catalogue = ProductCatalogue()
-    similar_products = product_catalogue.get_similar_product(
+    await product_catalogue.initialize()
+
+    similar_products = await product_catalogue.get_similar_product(
         normalized_product_name
     )
-    if not similar_products:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found or no similar products available.",
-        )
 
+    # Remove the error check and just return the results (which might be empty)
     return {"similar_products": similar_products}
 
 
@@ -228,7 +232,7 @@ async def get_trending(
 ):
     """Get trending products for a specific category"""
 
-    trending_agent = Agent()
+    trending_agent = Agent(information_type="trending")
     result = await trending_agent.get_information(category, timeframe)
     if not result:
         raise HTTPException(
@@ -238,32 +242,25 @@ async def get_trending(
     return result
 
 
-@app.get("/trending-categories")
-async def get_categories():
-    """Get list of supported product categories"""
-    return {"categories": get_trending_categories()}
-
-
 @app.get("/search/{search_query}")
 async def search(
     search_query: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     limit: int = 2,
     batch_size: int = 20,
 ):
     normalized_query = search_query.lower()
 
     # Get existing structured output from database
-    structured_output = load_structured_output(normalized_query, db=db)
-    existing_search_history = (
-        db.query(SearchHistory)
-        .filter(
+    structured_output = await load_structured_output(normalized_query, db=db)
+    result = await db.execute(
+        select(SearchHistory).filter(
             SearchHistory.user_id == current_user.id,
             SearchHistory.search_query == normalized_query,
         )
-        .first()
     )
+    existing_search_history = result.scalar_one_or_none()
     # If we have cached results
     if structured_output:
         if not existing_search_history:
@@ -274,7 +271,7 @@ async def search(
                 structured_output_id=structured_output["id"],
             )
             db.add(search_history)
-            db.commit()
+            await db.commit()
 
             # Return cached results
         return filter_data(structured_output)
@@ -305,14 +302,14 @@ async def search(
         ]
     }
 
-    save_data(all_submissions)
+    await save_data(all_submissions, db=db)
     results = await process_all_posts(
         all_submissions, normalized_query, batch_size
     )
     filtered_results = filter_data(results)
 
     # Save structured output and create search history
-    structured_output = save_structured_output(
+    structured_output = await save_structured_output(
         normalized_query, filtered_results, db=db
     )
     if structured_output and not existing_search_history:
@@ -322,7 +319,7 @@ async def search(
             structured_output_id=structured_output.id,
         )
         db.add(search_history)
-        db.commit()
+        await db.commit()
 
     return filtered_results
 
@@ -330,10 +327,10 @@ async def search(
 @app.get("/user/search-analytics", response_model=list[SearchAnalytic])
 async def get_user_search_history(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get analytics for the current user's search history"""
-    analytics = get_user_search_analytics(current_user.id, db)
+    analytics = await get_user_search_analytics(current_user.id, db)
     return format_analytics_result(analytics)
 
 

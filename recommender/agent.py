@@ -46,7 +46,7 @@ class CategoryQuery(BaseModel):
 class Agent:
     def __init__(
         self,
-        model_name: str = "gpt-4",
+        model_name: str = "gpt-4o",
         temperature: float = 0.1,
         information_type: str = "product",
         search_engine_name: str = "ddg",
@@ -66,7 +66,7 @@ class Agent:
             json_string = json_string.split("```")[0]
         return json_string.strip()
 
-    async def _search_product(self, query: str) -> str:
+    def _search_product(self, query: str) -> Optional[str]:
         """Search for specific product information"""
         enhanced_query = f"{query} specs technical details official reviews"
 
@@ -88,7 +88,7 @@ class Agent:
                 highlights=True,
             )
 
-    async def _search_trends(self, query: CategoryQuery) -> str:
+    def _search_trends(self, query: CategoryQuery) -> str:
         """Search for trending products in a category"""
         search_queries = [
             f"trending {query.category} {query.timeframe}",
@@ -126,9 +126,9 @@ class Agent:
     ) -> Optional[Dict]:
         """Main method to get information based on type"""
         if self.information_type == "product":
-            return self._get_product_information(query)
+            return await self._get_product_information(query)
         else:
-            return self._get_trending_information(query, timeframe)
+            return await self._get_trending_information(query, timeframe)
 
     async def _get_product_information(self, query: str) -> Optional[Dict]:
         """Handle product information retrieval"""
@@ -136,17 +136,17 @@ class Agent:
         if existing_product:
             return existing_product
 
-        search_tool = self.get_search_tool()
-        messages = self._initialize_messages(query)
-        return self._process_information(messages, search_tool, query)
+        search_tool = await self.get_search_tool()
+        messages = await self._initialize_messages(query)
+        return await self._process_information(messages, search_tool, query)
 
     async def _get_trending_information(
         self, category: str, timeframe: str
     ) -> Optional[Dict]:
         """Handle trending information retrieval"""
-        search_tool = self.get_search_tool()
-        messages = self._initialize_messages(category, timeframe)
-        return self._process_information(
+        search_tool = await self.get_search_tool()
+        messages = await self._initialize_messages(category, timeframe)
+        return await self._process_information(
             messages, search_tool, category, timeframe
         )
 
@@ -196,7 +196,7 @@ class Agent:
         max_iterations = 2
 
         while ai_msg.tool_calls and iteration < max_iterations:
-            tool_output = self._handle_tool_calls(
+            tool_output = await self._handle_tool_calls(
                 ai_msg, search_tool, query, timeframe
             )
             messages.append(
@@ -209,7 +209,7 @@ class Agent:
             messages.append(ai_msg)
             iteration += 1
 
-        return self._save_information(ai_msg, messages, query, timeframe)
+        return await self._save_information(ai_msg, messages, query, timeframe)
 
     async def _handle_tool_calls(
         self,
@@ -244,7 +244,9 @@ class Agent:
     ) -> Optional[Dict]:
         """Save and validate information based on type"""
         try:
-            cleaned_json = self._validate_and_clean_json_data(ai_msg.content)
+            cleaned_json = await self._validate_and_clean_json_data(
+                ai_msg.content
+            )
             data = json.loads(cleaned_json)
 
             if self.information_type == "product":

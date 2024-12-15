@@ -4,7 +4,7 @@ from typing import Tuple
 
 import asyncpraw
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from recommender.environment_vars import (
     CLIENT_ID,
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class RedditService:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def get_reddit_client(self):
@@ -38,7 +38,7 @@ class RedditService:
 
         # Store state in the user model
         user.reddit_state = state
-        self.db.commit()
+        await self.db.commit()
 
         auth_url = reddit.auth.url(["identity", "read"], state, "permanent")
         return str(auth_url), state
@@ -62,12 +62,12 @@ class RedditService:
                 None  # clear the state after successful authentication
             )
 
-            self.db.commit()
+            await self.db.commit()
             return True
 
         except Exception as e:
             logger.error(f"Reddit Authentication failed: {str(e)}")
-            self.db.rollback()
+            await self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
 
     async def get_authorized_client(self, user: User):
