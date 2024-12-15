@@ -1,125 +1,168 @@
-import json
+import logging
 from typing import Dict, List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy import select
 
-from recommender.agent import Agent
 from recommender.database import get_db
 from recommender.models import ProductModel
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ProductCatalogue:
     def __init__(self):
-        self.catalogue = self._load_catalogue()
-        self.normalized_product_map = self._build_normalized_product_name_map()
+        self.catalogue: Optional[Dict] = None
 
-    def _load_catalogue(self) -> Dict:
-        """Load products from database"""
+    async def initialize(self):
+        """Initialize the catalogue asynchronously"""
+        self.catalogue = await self._load_catalogue()
+        return self
+
+    async def _load_catalogue(self) -> Dict:
+        """Load product catalogue from database"""
         catalogue = {}
-        # load from database
-        db: Session = next(get_db())
-        try:
-            db_products = db.query(ProductModel).all()
-            for product in db_products:
-                catalogue[product.product_name] = {
-                    "brand": product.brand,
-                    "category": product.category,
-                    "release_year": product.release_year,
-                    "tier": product.tier,
-                    "price_range": product.price_range,
-                    "key_features": product.key_features,
-                    "confidence_score": product.confidence_score,
-                    "verified": product.verified,
-                    "verification_date": product.verification_date.isoformat()
-                    if product.verification_date
-                    else None,
-                    "sources": product.source_url,
-                }
-        except Exception as e:
-            print(f"Error loading product catalogue: {e}")
-        finally:
-            db.close()
-        return catalogue
-
-    def _build_normalized_product_name_map(self) -> Dict[str, str]:
-        """logic to build a map of normalised product names"""
-        return {
-            product_name.lower(): product_name
-            for product_name in self.catalogue.keys()
-        }
-
-    def _normalize_product_name(self, product_name: str) -> Optional[str]:
-        """convert to lowercase"""
-        return self.normalized_product_map.get(product_name.lower())
-
-    def get_product_info(self, product_name: str) -> Optional[Dict]:
-        normalized_product_name = self._normalize_product_name(product_name)
-
-        if (
-            normalized_product_name
-            and normalized_product_name in self.catalogue
-        ):
-            print(f"using cached product info for {product_name}")
-            return {
-                normalized_product_name: self.catalogue[normalized_product_name]
-            }
-
-        # if not found, fetch new information
-        try:
-            product_agent = Agent(information_type="product")
-            new_info = product_agent.get_information(product_name)
-
-            # new_info = get_product_information(product_name)
-            if new_info:
-                # parse the json string if it is a string
-                if isinstance(new_info, str):
-                    new_info = json.loads(new_info)
-                # refresh catalogue
-                self.catalogue = self._load_catalogue()
-                self.normalized_product_map = (
-                    self._build_normalized_product_name_map()
+        async for db in get_db():
+            try:
+                result = await db.execute(
+                    select(ProductModel).order_by(ProductModel.product_name)
                 )
-                return new_info
-        except Exception as e:
-            print(f"Error fetching product info: {e}")
-        return None
+                products = result.scalars().all()
 
-    def get_similar_product(self, product_name: str) -> Dict[str, List[str]]:
-        """Find similar products based on brand, category, and key features"""
-        product_info = self.get_product_info(product_name)
-        if not product_info:
-            return {"same_brand": [], "same_category": [], "same_features": []}
-        print(f"product_info: {product_info}")
-        # Extract product info
-        searched_product_name, product_data = next(iter(product_info.items()))
-        target_brand = product_data["brand"]
-        target_category = product_data["category"]
-        target_tier = product_data["tier"]
+                for product in products:
+                    catalogue[product.product_name.lower()] = {
+                        "brand": product.brand,
+                        "category": product.category,
+                        "tier": product.tier,
+                        "release_year": product.release_year,
+                        "price_range": product.price_range,
+                        "key_features": product.key_features,
+                        "confidence_score": product.confidence_score,
+                        "verified": product.verified,
+                        "verification_date": product.verification_date.isoformat()
+                        if product.verification_date
+                        else None,
+                        "source_url": product.source_url,
+                    }
+                return catalogue
+            except Exception as e:
+                logger.error(f"Error loading catalogue: {e}")
+                return {}
 
-        similar_products = {
-            "same_brand": [],
-            "similar_category": [],
-            "competitors": [],
-        }
+    async def get_similar_product(self, product_name: str) -> List[Dict]:
+        """
+        Get similar products based on name.
 
-        for name, info in self.catalogue.items():
-            if name.lower() == searched_product_name.lower():
-                continue
-            if (
-                info["brand"] == target_brand
-                and info["category"] == target_category
-            ):
-                similar_products["same_brand"].append(name)
+        Args:
+            product_name: Name of the product to find similar products for
 
-            elif (
-                info["category"] == target_category
-                and info["brand"] != target_brand
-            ):
-                similar_products["similar_category"].append(name)
-            elif (
-                info["category"] == target_category
-                and info["tier"] == target_tier
-                and info["brand"] != target_brand
-            ):
-                similar_products["competitors"].append(name)
-        return similar_products
+        Returns:
+            List of similar products with their details
+        """
+        if not self.catalogue:
+            await self.initialize()
+
+        similar_products = []
+        product_name = product_name.lower()
+
+        for name, details in self.catalogue.items():
+            # Simple similarity check - can be enhanced with more sophisticated matching
+            if product_name in name or name in product_name:
+                similar_products.append({"name": name, **details})
+
+        # Sort by verification status and confidence score
+        similar_products.sort(
+            key=lambda x: (
+                x.get("verified", False),
+                x.get("confidence_score", "low"),
+            ),
+            reverse=True,
+        )
+
+        return similar_products[:5]  # Return top 5 similar products
+
+    async def search_by_category(self, category: str) -> List[Dict]:
+        """
+        Search products by category.
+
+        Args:
+            category: Product category to search for
+
+        Returns:
+            List of products in the specified category
+        """
+        if not self.catalogue:
+            await self.initialize()
+
+        category = category.lower()
+        category_products = []
+
+        for name, details in self.catalogue.items():
+            if details.get("category", "").lower() == category:
+                category_products.append({"name": name, **details})
+
+        # Sort by verification status and confidence score
+        category_products.sort(
+            key=lambda x: (
+                x.get("verified", False),
+                x.get("confidence_score", "low"),
+            ),
+            reverse=True,
+        )
+
+        return category_products
+
+    async def search_by_brand(self, brand: str) -> List[Dict]:
+        """
+        Search products by brand.
+
+        Args:
+            brand: Brand name to search for
+
+        Returns:
+            List of products from the specified brand
+        """
+        if not self.catalogue:
+            await self.initialize()
+
+        brand = brand.lower()
+        brand_products = []
+
+        for name, details in self.catalogue.items():
+            if details.get("brand", "").lower() == brand:
+                brand_products.append({"name": name, **details})
+
+        # Sort by verification status and confidence score
+        brand_products.sort(
+            key=lambda x: (
+                x.get("verified", False),
+                x.get("confidence_score", "low"),
+            ),
+            reverse=True,
+        )
+
+        return brand_products
+
+    def get_categories(self) -> List[str]:
+        """Get list of unique product categories"""
+        if not self.catalogue:
+            return []
+
+        categories = set()
+        for details in self.catalogue.values():
+            if category := details.get("category"):
+                categories.add(category)
+
+        return sorted(list(categories))
+
+    def get_brands(self) -> List[str]:
+        """Get list of unique brands"""
+        if not self.catalogue:
+            return []
+
+        brands = set()
+        for details in self.catalogue.values():
+            if brand := details.get("brand"):
+                brands.add(brand)
+
+        return sorted(list(brands))

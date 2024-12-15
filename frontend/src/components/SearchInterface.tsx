@@ -11,6 +11,7 @@ import LoadingCard from "./LoadingCard";
 import SearchHistory from "./SearchHistory";
 import { formatDistanceToNow } from "date-fns";
 import RedditConnectBanner from "./RedditConnectBanner";
+import CategorySelector from "./Categories";
 
 interface SearchInterfaceProps {
   username: string;
@@ -202,7 +203,13 @@ export default function SearchInterface({
 
                 <div className="w-full max-w-2xl mt-16">
                   <SearchForm />
-
+                  <div className="w-full max-w-2xl mb-8">
+                    <CategorySelector
+                      onCategorySelect={(product) => {
+                        onSearchQueryChange(product);
+                      }}
+                    />
+                  </div>
                   {/* Recent Searches */}
                   {recentSearches.length > 0 && (
                     <div className="w-full mt-12">

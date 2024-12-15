@@ -46,7 +46,7 @@ class CategoryQuery(BaseModel):
 class Agent:
     def __init__(
         self,
-        model_name: str = "gpt-4",
+        model_name: str = "gpt-4o",
         temperature: float = 0.1,
         information_type: str = "product",
         search_engine_name: str = "ddg",
@@ -58,7 +58,7 @@ class Agent:
         self.current_year = datetime.now().year
         self.search_engine_name = search_engine_name
 
-    def _validate_and_clean_json_data(self, json_string: str) -> str:
+    async def _validate_and_clean_json_data(self, json_string: str) -> str:
         """Clean and validate json string before parsing"""
         if json_string.startswith("```json"):
             json_string = json_string.split("```json")[1]
@@ -66,7 +66,7 @@ class Agent:
             json_string = json_string.split("```")[0]
         return json_string.strip()
 
-    def _search_product(self, query: str) -> str:
+    def _search_product(self, query: str) -> Optional[str]:
         """Search for specific product information"""
         enhanced_query = f"{query} specs technical details official reviews"
 
@@ -102,7 +102,7 @@ class Agent:
         ]
         return "\n\n".join(results)
 
-    def get_search_tool(self) -> StructuredTool:
+    async def get_search_tool(self) -> StructuredTool:
         """Get appropriate search tool based on information type"""
         if self.information_type == "product":
             return StructuredTool.from_function(
@@ -121,36 +121,36 @@ class Agent:
                 return_direct=True,
             )
 
-    def get_information(
+    async def get_information(
         self, query: str, timeframe: str = "last month"
     ) -> Optional[Dict]:
         """Main method to get information based on type"""
         if self.information_type == "product":
-            return self._get_product_information(query)
+            return await self._get_product_information(query)
         else:
-            return self._get_trending_information(query, timeframe)
+            return await self._get_trending_information(query, timeframe)
 
-    def _get_product_information(self, query: str) -> Optional[Dict]:
+    async def _get_product_information(self, query: str) -> Optional[Dict]:
         """Handle product information retrieval"""
         existing_product = get_product_from_db(query)
         if existing_product:
             return existing_product
 
-        search_tool = self.get_search_tool()
-        messages = self._initialize_messages(query)
-        return self._process_information(messages, search_tool, query)
+        search_tool = await self.get_search_tool()
+        messages = await self._initialize_messages(query)
+        return await self._process_information(messages, search_tool, query)
 
-    def _get_trending_information(
+    async def _get_trending_information(
         self, category: str, timeframe: str
     ) -> Optional[Dict]:
         """Handle trending information retrieval"""
-        search_tool = self.get_search_tool()
-        messages = self._initialize_messages(category, timeframe)
-        return self._process_information(
+        search_tool = await self.get_search_tool()
+        messages = await self._initialize_messages(category, timeframe)
+        return await self._process_information(
             messages, search_tool, category, timeframe
         )
 
-    def _initialize_messages(
+    async def _initialize_messages(
         self, query: str, timeframe: Optional[str] = None
     ) -> List:
         """Initialize message chain based on information type"""
@@ -180,7 +180,7 @@ class Agent:
             HumanMessage(content=content),
         ]
 
-    def _process_information(
+    async def _process_information(
         self,
         messages: List,
         search_tool: StructuredTool,
@@ -196,7 +196,7 @@ class Agent:
         max_iterations = 2
 
         while ai_msg.tool_calls and iteration < max_iterations:
-            tool_output = self._handle_tool_calls(
+            tool_output = await self._handle_tool_calls(
                 ai_msg, search_tool, query, timeframe
             )
             messages.append(
@@ -209,9 +209,9 @@ class Agent:
             messages.append(ai_msg)
             iteration += 1
 
-        return self._save_information(ai_msg, messages, query, timeframe)
+        return await self._save_information(ai_msg, messages, query, timeframe)
 
-    def _handle_tool_calls(
+    async def _handle_tool_calls(
         self,
         ai_msg,
         search_tool: StructuredTool,
@@ -235,7 +235,7 @@ class Agent:
                 {"category": query, "timeframe": timeframe}
             )
 
-    def _save_information(
+    async def _save_information(
         self,
         ai_msg,
         messages: List,
@@ -244,7 +244,9 @@ class Agent:
     ) -> Optional[Dict]:
         """Save and validate information based on type"""
         try:
-            cleaned_json = self._validate_and_clean_json_data(ai_msg.content)
+            cleaned_json = await self._validate_and_clean_json_data(
+                ai_msg.content
+            )
             data = json.loads(cleaned_json)
 
             if self.information_type == "product":
