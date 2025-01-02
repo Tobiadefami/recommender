@@ -220,7 +220,6 @@ async def similar_products(
         normalized_product_name
     )
 
-    # Remove the error check and just return the results (which might be empty)
     return {"similar_products": similar_products}
 
 
