@@ -3,7 +3,7 @@ import React from "react";
 
 const LoadingCard: React.FC = () => {
   return (
-    <div className="bg-card shadow-md rounded-lg p-6 mb-4 animate-pulse">
+    <div className="bg-card shadow-md rounded-lg p-6 w-full mb-4 animate-pulse">
       <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
       <div className="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
       <div className="h-4 bg-gray-300 rounded w-5/6 mb-4"></div>

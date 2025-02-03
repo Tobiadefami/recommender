@@ -115,13 +115,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 bg-background z-10 pb-4 pt-6">
-        <h2 className="text-2xl font-semibold">Search Results</h2>
-      </div>
-
       {/* Overall Decision Card */}
       <div className="bg-card shadow-md rounded-lg p-6">
-        <h3 className="text-xl font-semibold mb-2">Overall Decision</h3>
+        <h3 className="text-xl font-semibold mb-2">Overall Analysis</h3>
         <p className="text-muted-foreground">{results.overall_decision}</p>
       </div>
 

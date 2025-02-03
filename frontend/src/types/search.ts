@@ -28,10 +28,21 @@ export interface SimilarProducts {
   similar_category: string[];
 }
 
+export interface ProductInformation {
+  brand: string;
+  category: string;
+  tier: string;
+  release_year: string;
+  price_range: string;
+  key_features: string[];
+  confidence_score: string;
+  verified: boolean;
+}
 export interface SearchResult {
   reviews: Review[];
   overall_decision: string;
   similar_products: SimilarProducts;
+  product_information?: ProductInformation;
 }
 
 export interface ComparisonView {

@@ -2,14 +2,13 @@ import logging
 from datetime import timedelta
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
 
-from recommender.agent import Agent
 from recommender.analytics import (
     format_analytics_result,
     get_user_search_analytics,
@@ -19,9 +18,7 @@ from recommender.auth import (
     create_access_token,
     create_user,
     get_current_user,
-    get_user_by_username,
 )
-from recommender.auto_complete import autocomplete
 from recommender.database import get_db, init_db
 from recommender.environment_vars import ORIGIN, REDIRECT_URL
 from recommender.fetch_youtube_data import search_youtube_videos
@@ -39,11 +36,10 @@ from recommender.save_data import (
     get_existing_search_queries,
     load_structured_output,
     save_data,
-    save_structured_output,
 )
 from recommender.schemas import SearchAnalytic, UserCreate, UserResponse
 from recommender.structured_output import process_all_posts
-from recommender.utils import filter_data
+from recommender.utils import autocomplete, filter_data
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -127,13 +123,6 @@ async def get_recent_searches(
 # Authentication endpoints
 @app.post("/register")
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    existing_user = await get_user_by_username(db, user.username)
-
-    if existing_user:
-        raise HTTPException(
-            status_code=400, detail="Username already registered"
-        )
-
     user = await create_user(db, user.username, user.email, user.password)
     return user
 
@@ -219,26 +208,8 @@ async def similar_products(
     similar_products = await product_catalogue.get_similar_product(
         normalized_product_name
     )
-
+    logger.info(f"{similar_products=}")
     return {"similar_products": similar_products}
-
-
-@app.get("/trending/{category}")
-async def get_trending(
-    category: str,
-    timeframe: str = "last month",
-    current_user: User = Depends(get_current_user),
-):
-    """Get trending products for a specific category"""
-
-    trending_agent = Agent(information_type="trending")
-    result = await trending_agent.get_information(category, timeframe)
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No trending products found for category: {category}",
-        )
-    return result
 
 
 @app.get("/search/{search_query}")
@@ -248,79 +219,126 @@ async def search(
     db: AsyncSession = Depends(get_db),
     limit: int = 2,
     batch_size: int = 20,
+    skip_history: bool = Header(False, alias="X-Skip-History"),
 ):
     normalized_query = search_query.lower()
 
-    # Get existing structured output from database
-    structured_output = await load_structured_output(normalized_query, db=db)
-    result = await db.execute(
-        select(SearchHistory).filter(
-            SearchHistory.user_id == current_user.id,
-            SearchHistory.search_query == normalized_query,
+    try:
+        results = await _execute_main_search(
+            normalized_query, current_user, db, limit, batch_size, skip_history
         )
-    )
-    existing_search_history = result.scalar_one_or_none()
-    # If we have cached results
-    if structured_output:
-        if not existing_search_history:
-            # Create search history entry with the existing structured output
+        return results
+    except Exception as e:
+        logger.error(f"Search Error: {str(e)}")
+        return {
+            "reviews": [],
+            "overall_decision": "An error occurred while processing your search.",
+            "similar_products": {
+                "same_brand": [],
+                "competitors": [],
+                "similar_category": [],
+            },
+        }
+
+
+async def _execute_main_search(
+    query, current_user, db, limit, batch_size, skip_history
+):
+    try:
+        # Check cache first
+        structured_output = await load_structured_output(query, db=db)
+        if structured_output:
+            if not skip_history:
+                await _update_search_history(
+                    current_user, query, structured_output, db
+                )
+            return filter_data(structured_output)
+
+        # Initialize services
+        reddit_service = RedditService(db=db)
+        reddit_search_results = []
+
+        try:
+            reddit = await reddit_service.get_authorized_client(current_user)
+            subreddit = await reddit.subreddit("all")
+            async for submission in subreddit.search(query, limit=limit):
+                reddit_search_results.append(submission)
+        except Exception as e:
+            logger.error(f"Reddit API error: {str(e)}")
+            # Continue with empty results if Reddit fails
+
+        # Get YouTube data
+        try:
+            youtube_data = await search_youtube_videos(query, max_results=limit)
+        except Exception as e:
+            logger.error(f"YouTube API error: {str(e)}")
+            youtube_data = []
+
+        # Process results
+        process_whole_reddit_data = await process_submissions(
+            reddit_search_results
+        )
+        processed_reddit_submissions = [
+            await process_submission(data) for data in process_whole_reddit_data
+        ]
+
+        all_submissions = {
+            query: [
+                {
+                    "reddit": processed_reddit_submissions,
+                    "youtube": youtube_data,
+                }
+            ]
+        }
+
+        await save_data(all_submissions, db=db)
+        results = await process_all_posts(all_submissions, query, batch_size)
+        filtered_results = filter_data(results)
+
+        if not skip_history:
+            await _update_search_history(
+                current_user, query, filtered_results, db
+            )
+
+        return filtered_results
+
+    except Exception as e:
+        logger.error(f"Error in main search execution: {str(e)}", exc_info=True)
+        # Return empty results structure instead of failing
+        return {
+            "reviews": [],
+            "overall_decision": "Unable to fetch results at this time.",
+            "similar_products": {
+                "same_brand": [],
+                "competitors": [],
+                "similar_category": [],
+            },
+        }
+
+
+async def _update_search_history(current_user, query, structured_output, db):
+    try:
+        # First await the execute
+        result = await db.execute(
+            select(SearchHistory).filter(
+                SearchHistory.user_id == current_user.id,
+                SearchHistory.search_query == query,
+            )
+        )
+        # Then get the scalar result
+        existing_history = await result.scalar_one_or_none()
+
+        if not existing_history:
             search_history = SearchHistory(
                 user_id=current_user.id,
-                search_query=search_query,
+                search_query=query,
                 structured_output_id=structured_output["id"],
             )
             db.add(search_history)
             await db.commit()
-
-            # Return cached results
-        return filter_data(structured_output)
-
-    # If no cached results, perform new search
-    reddit_service = RedditService(db=db)
-    reddit = await reddit_service.get_authorized_client(current_user)
-
-    youtube_data_futures = search_youtube_videos(
-        normalized_query, max_results=limit
-    )
-
-    subreddit = await reddit.subreddit("all")
-    reddit_search_results = []
-
-    async for submission in subreddit.search(normalized_query, limit=limit):
-        reddit_search_results.append(submission)
-
-    process_whole_reddit_data = await process_submissions(reddit_search_results)
-    processed_reddit_submissions = [
-        await process_submission(data) for data in process_whole_reddit_data
-    ]
-
-    youtube_data = await youtube_data_futures
-    all_submissions = {
-        normalized_query: [
-            {"reddit": processed_reddit_submissions, "youtube": youtube_data}
-        ]
-    }
-
-    await save_data(all_submissions, db=db)
-    results = await process_all_posts(
-        all_submissions, normalized_query, batch_size
-    )
-    filtered_results = filter_data(results)
-
-    # Save structured output and create search history
-    structured_output = await save_structured_output(
-        normalized_query, filtered_results, db=db
-    )
-    if structured_output and not existing_search_history:
-        search_history = SearchHistory(
-            user_id=current_user.id,
-            search_query=search_query,
-            structured_output_id=structured_output.id,
-        )
-        db.add(search_history)
-        await db.commit()
-
-    return filtered_results
+    except Exception as e:
+        logger.error(f"Error updating search history: {str(e)}")
+        await db.rollback()
 
 
 @app.get("/user/search-analytics", response_model=list[SearchAnalytic])

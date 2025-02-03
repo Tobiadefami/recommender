@@ -21,7 +21,6 @@ def register_models():
         Review,
         SearchHistory,
         StructuredOutput,
-        TrendingProducts,
         User,
     )
     # The imports themselves register the models

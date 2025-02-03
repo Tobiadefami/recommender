@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 
 from sqlalchemy import select
 
+from recommender.agent import Agent
 from recommender.database import get_db
 from recommender.models import ProductModel
 
@@ -30,6 +31,7 @@ class ProductCatalogue:
                 products = result.scalars().all()
 
                 for product in products:
+                    print("WE ARE IN THE PRODUCTS DATABASE")
                     catalogue[product.product_name.lower()] = {
                         "brand": product.brand,
                         "category": product.category,
@@ -49,37 +51,61 @@ class ProductCatalogue:
                 logger.error(f"Error loading catalogue: {e}")
                 return {}
 
-    async def get_similar_product(self, product_name: str) -> List[Dict]:
+    async def get_similar_product(self, product_name: str) -> Dict:
         """
-        Get similar products based on name.
-
-        Args:
-            product_name: Name of the product to find similar products for
-
-        Returns:
-            List of similar products with their details
+        Main method for product comparison feature.
+        Returns categorized similar products matching the frontend interface.
         """
         if not self.catalogue:
             await self.initialize()
 
-        similar_products = []
-        product_name = product_name.lower()
+        agent = Agent()
+        search_product_info = await agent.get_information(product_name)
+        logger.info(f"SEARCH PRODUCT INFORMATION >>> {search_product_info}")
+        if not search_product_info:
+            return {"same_brand": [], "competitors": [], "similar_category": []}
 
-        for name, details in self.catalogue.items():
-            # Simple similarity check - can be enhanced with more sophisticated matching
-            if product_name in name or name in product_name:
-                similar_products.append({"name": name, **details})
+        # Extract standardized information
+        search_product_name = next(iter(search_product_info))
+        search_details = search_product_info[search_product_name]
 
-        # Sort by verification status and confidence score
-        similar_products.sort(
-            key=lambda x: (
-                x.get("verified", False),
-                x.get("confidence_score", "low"),
-            ),
-            reverse=True,
-        )
+        # Extract standardized information
+        search_brand = search_details["brand"].lower()
+        search_category = search_details["category"].lower()
+        search_tier = search_details["tier"].lower()
 
-        return similar_products[:5]  # Return top 5 similar products
+        same_brand = []
+        competitors = []
+        similar_category = []
+
+        # Categorize products using standardized fields
+        for db_product_name, db_product_details in self.catalogue.items():
+            if db_product_name.lower() == product_name.lower():
+                continue
+
+            db_brand = db_product_details["brand"].lower()
+            db_category = db_product_details["category"].lower()
+            db_tier = db_product_details["tier"].lower()
+
+            # Same brand products
+            if db_brand == search_brand:
+                same_brand.append(db_product_name)
+            # Direct competitors (same category & tier, different brand)
+            elif (
+                db_category == search_category
+                and db_tier == search_tier
+                and db_brand != search_brand
+            ):
+                competitors.append(db_product_name)
+            # Similar category products
+            elif db_category == search_category:
+                similar_category.append(db_product_name)
+
+        return {
+            "same_brand": same_brand[:5],
+            "competitors": competitors[:5],
+            "similar_category": similar_category[:5],
+        }
 
     async def search_by_category(self, category: str) -> List[Dict]:
         """
@@ -95,12 +121,12 @@ class ProductCatalogue:
             await self.initialize()
 
         category = category.lower()
-        category_products = []
 
-        for name, details in self.catalogue.items():
-            if details.get("category", "").lower() == category:
-                category_products.append({"name": name, **details})
-
+        category_products = [
+            {"name": name, **details}
+            for name, details in self.catalogue.items()
+            if details.get("category", "").lower() == category
+        ]
         # Sort by verification status and confidence score
         category_products.sort(
             key=lambda x: (
@@ -126,12 +152,12 @@ class ProductCatalogue:
             await self.initialize()
 
         brand = brand.lower()
-        brand_products = []
 
-        for name, details in self.catalogue.items():
-            if details.get("brand", "").lower() == brand:
-                brand_products.append({"name": name, **details})
-
+        brand_products = [
+            {"name": name, **details}
+            for name, details in self.catalogue.items()
+            if details.get("brand", "").lower() == brand
+        ]
         # Sort by verification status and confidence score
         brand_products.sort(
             key=lambda x: (
@@ -148,21 +174,23 @@ class ProductCatalogue:
         if not self.catalogue:
             return []
 
-        categories = set()
-        for details in self.catalogue.values():
-            if category := details.get("category"):
-                categories.add(category)
-
-        return sorted(list(categories))
+        return sorted(
+            {
+                details.get("category")
+                for details in self.catalogue.values()
+                if details.get("category")
+            }
+        )
 
     def get_brands(self) -> List[str]:
         """Get list of unique brands"""
         if not self.catalogue:
             return []
 
-        brands = set()
-        for details in self.catalogue.values():
-            if brand := details.get("brand"):
-                brands.add(brand)
-
-        return sorted(list(brands))
+        return sorted(
+            {
+                details.get("brand")
+                for details in self.catalogue.values()
+                if details.get("brand")
+            }
+        )

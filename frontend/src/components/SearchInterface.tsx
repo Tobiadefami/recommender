@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import UserMenu from "./UserMenu";
@@ -31,6 +31,7 @@ interface SearchInterfaceProps {
   showRedditBanner: boolean;
   onRedditConnect: () => void;
   onRedditBannerDismiss: () => void;
+  onDirectSearch: (query: string) => Promise<void>;
 }
 
 export default function SearchInterface({
@@ -51,6 +52,7 @@ export default function SearchInterface({
   showRedditBanner,
   onRedditConnect,
   onRedditBannerDismiss,
+  onDirectSearch,
 }: SearchInterfaceProps) {
   const [greeting, setGreeting] = useState<string>("");
   const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
@@ -59,25 +61,36 @@ export default function SearchInterface({
     setGreeting(getGreeting(new Date()));
   }, []);
 
-  const SearchForm = () => (
+  // Pass in the prop "compact" so you can set smaller styling if results exist
+  const SearchForm = ({ compact }: { compact?: boolean }) => (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(e);
       }}
-      className="bg-card/50 backdrop-blur-sm rounded-3xl p-6 shadow-lg
-                border border-border/50 hover:border-border transition-colors"
+      className={`
+          bg-card/50
+          backdrop-blur-sm
+          rounded-3xl
+          shadow-lg
+          border
+          border-border/50
+          hover:border-border
+          transition-colors
+          ${compact ? "p-4" : "p-6"}
+        `}
     >
       <div className="relative">
-        <Search className="absolute w-5 h-5 left-3 top-1/2 transform -translate-y-1/2 text-gray-400 md:w-6 md:h-6" />
         <Autocomplete
           value={searchQuery}
           onChange={onSearchQueryChange}
           onSuggestionSelect={onSuggestionSelect}
           onSubmit={onSubmit}
           showSuggestions={showSuggestions}
+          autoFocus={!results}
         />
       </div>
+      {/* The rest of the form (example buttons) only show if !results */}
       {!results && (
         <>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6">
@@ -92,22 +105,7 @@ export default function SearchInterface({
             >
               Pixel 7 pro
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="rounded-xl hover:bg-accent/50 transition-colors"
-              onClick={() => onSearchQueryChange("Porsche taycan")}
-            >
-              Porsche taycan
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="rounded-xl hover:bg-accent/50 transition-colors"
-              onClick={() => onSearchQueryChange("Sony a7s iii")}
-            >
-              Sony a7s iii
-            </Button>
+            {/* ...other example buttons... */}
             <Button
               onClick={onClearSuggestions}
               variant="ghost"
@@ -122,49 +120,83 @@ export default function SearchInterface({
     </form>
   );
 
-  // Calculate header height based on whether results are present
-  const headerHeight = results ? "header-with-search" : "header-without-search";
-
   return (
     <div className="min-h-screen flex flex-col font-roboto bg-background text-foreground">
       {/* Fixed header */}
       <header
-        className={`fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm z-40 p-4 md:p-8 border-b ${results ? "pb-8" : ""}`}
+        className={`
+          fixed top-0 left-0 right-0
+          bg-background/95
+          backdrop-blur-sm
+          z-40
+          p-4 md:p-6
+          border-b
+          flex items-center
+          justify-between
+          ${results ? "pb-2" : ""}
+        `}
       >
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <a href="/">
-              <h1 className="text-2xl md:text-3xl font-semibold">Recommendr</h1>
-            </a>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAnalytics(!showAnalytics)}
-              className="flex items-center gap-2"
+        {/* Left side: App name + inline search bar */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <a href="/" className="flex items-center gap-2">
+            <h1
+              className={`
+                font-semibold
+                transition-all
+                ${results ? "text-xl md:text-2xl" : "text-2xl md:text-3xl"}
+              `}
             >
-              <Search className="w-4 h-4" />
-              Search History
-            </Button>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <UserMenu username={username} onLogout={onLogout} />
-          </div>
+              Recommendr
+            </h1>
+          </a>
+
+          {/* When results exist, show a smaller search bar inline */}
+          {results && (
+            <div className="flex-grow ml-4">
+              <SearchForm compact />
+            </div>
+          )}
         </div>
 
-        {/* Fixed search bar when results are present */}
-        {results && (
-          <div className="mt-6 max-w-2xl mx-auto">
-            <SearchForm />
-          </div>
-        )}
+        {/* Right side: Hamburger menu + Theme toggle + User menu */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAnalytics(!showAnalytics)}
+            className="flex items-center gap-2"
+          >
+            <Menu className="w-4 h-4" />
+          </Button>
+          <ThemeToggle />
+          <UserMenu username={username} onLogout={onLogout} />
+        </div>
       </header>
+
+      {/* OPTIONAL: Dark overlay for analytics */}
+      {showAnalytics && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[5] transition-all duration-200 ease-in-out"
+          onClick={() => setShowAnalytics(false)}
+        />
+      )}
 
       {/* Slide-out Analytics Panel */}
       <div
-        className={`fixed top-[${headerHeight}] left-0 h-[calc(100vh-${headerHeight})] w-[300px] bg-background border-r transform transition-transform duration-200 ${
-          showAnalytics ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`
+          fixed
+          top-[72px]
+          left-0
+          h-[calc(100vh-72px)]
+          w-[300px]
+          bg-background
+          border-r
+          transform
+          transition-transform
+          duration-200
+          z-10
+          ${showAnalytics ? "translate-x-0" : "-translate-x-full"}
+        `}
       >
         <div className="p-4 md:p-6">
           <SearchHistory
@@ -176,15 +208,21 @@ export default function SearchInterface({
       </div>
 
       {/* Main Content */}
-      <main
-        className={`transition-all duration-200 ${
-          showAnalytics ? "pl-[300px]" : "pl-0"
-        }`}
-      >
-        <div className="max-w-3xl mx-auto p-4 md:p-8">
-          {/* Adjust top margin based on whether results are present */}
+      <main className="mt-20">
+        <div
+          className={`
+            ${results || loading ? "ml-8" : "mx-auto"}
+            max-w-3xl
+            p-4
+            md:p-8
+          `}
+        >
           <div
-            className={`${results ? "mt-[200px]" : "mt-[180px]"} md:${results ? "mt-[220px]" : "mt-[200px]"} flex flex-col items-center`}
+            className={`
+              ${results ? "mt-[150px]" : "mt-[180px]"}
+              md:${results ? "mt-[170px]" : "mt-[200px]"}
+              flex flex-col
+            `}
           >
             {showRedditBanner && !hasRedditConnection && (
               <div className="w-full max-w-2xl mb-6">
@@ -202,11 +240,12 @@ export default function SearchInterface({
                 </h2>
 
                 <div className="w-full max-w-2xl mt-16">
+                  {/* Use a non-compact search bar when no results */}
                   <SearchForm />
                   <div className="w-full max-w-2xl mb-8">
                     <CategorySelector
                       onCategorySelect={(product) => {
-                        onSearchQueryChange(product);
+                        onDirectSearch(product);
                       }}
                     />
                   </div>
@@ -262,16 +301,14 @@ export default function SearchInterface({
               </>
             ) : (
               <div className="w-full max-w-2xl">
-                {/* Loading State */}
                 {loading && (
-                  <div>
+                  <div className="w-full">
                     <LoadingCard />
                     <LoadingCard />
                     <LoadingCard />
                   </div>
                 )}
 
-                {/* Search Results */}
                 {results && <SearchResults results={results} />}
               </div>
             )}

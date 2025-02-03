@@ -12,11 +12,10 @@ from langchain_google_community import GoogleSearchAPIWrapper
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from recommender.messages import MessageType, get_system_message
+from recommender.messages import get_system_message
 from recommender.product_db import (
     get_product_from_db,
     save_product_info,
-    save_trending_products,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -88,51 +87,23 @@ class Agent:
                 highlights=True,
             )
 
-    def _search_trends(self, query: CategoryQuery) -> str:
-        """Search for trending products in a category"""
-        search_queries = [
-            f"trending {query.category} {query.timeframe}",
-            f"best selling {query.category} {query.timeframe}",
-            f"most popular {query.category} reviews {query.timeframe}",
-            f"top rated {query.category} {query.timeframe}",
-        ]
-        results = [
-            SEARCH_ENGINE_MAP[self.search_engine_name].run(q)
-            for q in search_queries
-        ]
-        return "\n\n".join(results)
-
     async def get_search_tool(self) -> StructuredTool:
         """Get appropriate search tool based on information type"""
-        if self.information_type == "product":
-            return StructuredTool.from_function(
-                func=self._search_product,
-                name="search_product",
-                description="Search the web for product information",
-                args_schema=SearchQuery,
-                return_direct=True,
-            )
-        else:  # trending
-            return StructuredTool.from_function(
-                func=self._search_trends,
-                name="search_trends",
-                description="Search for trending products in a specific category",
-                args_schema=CategoryQuery,
-                return_direct=True,
-            )
+        return StructuredTool.from_function(
+            func=self._search_product,
+            name="search_product",
+            description="Search the web for product information",
+            args_schema=SearchQuery,
+            return_direct=True,
+        )
 
-    async def get_information(
-        self, query: str, timeframe: str = "last month"
-    ) -> Optional[Dict]:
+    async def get_information(self, query: str) -> Optional[Dict]:
         """Main method to get information based on type"""
-        if self.information_type == "product":
-            return await self._get_product_information(query)
-        else:
-            return await self._get_trending_information(query, timeframe)
+        return await self._get_product_information(query)
 
     async def _get_product_information(self, query: str) -> Optional[Dict]:
         """Handle product information retrieval"""
-        existing_product = get_product_from_db(query)
+        existing_product = await get_product_from_db(query)
         if existing_product:
             return existing_product
 
@@ -140,39 +111,14 @@ class Agent:
         messages = await self._initialize_messages(query)
         return await self._process_information(messages, search_tool, query)
 
-    async def _get_trending_information(
-        self, category: str, timeframe: str
-    ) -> Optional[Dict]:
-        """Handle trending information retrieval"""
-        search_tool = await self.get_search_tool()
-        messages = await self._initialize_messages(category, timeframe)
-        return await self._process_information(
-            messages, search_tool, category, timeframe
-        )
-
-    async def _initialize_messages(
-        self, query: str, timeframe: Optional[str] = None
-    ) -> List:
+    async def _initialize_messages(self, query: str) -> List:
         """Initialize message chain based on information type"""
-        message_type = (
-            MessageType.PRODUCT_AGENT
-            if self.information_type == "product"
-            else MessageType.TRENDING_AGENT
-        )
-        system_message = get_system_message(
-            message_type, current_year=self.current_year
-        )
+
+        system_message = get_system_message(current_year=self.current_year)
 
         content = (
-            (
-                f"Search for detailed and verified information about {query}. "
-                "Focus on official sources and reliable reviews."
-            )
-            if self.information_type == "product"
-            else (
-                f"Find the top 5 trending products in the {query} category for {timeframe}. "
-                "Include detailed verification from multiple sources."
-            )
+            f"Search for detailed and verified information about {query}. "
+            "Focus on official sources and reliable reviews."
         )
 
         return [
@@ -219,21 +165,16 @@ class Agent:
         timeframe: Optional[str] = None,
     ) -> str:
         """Handle tool calls based on information type"""
-        if self.information_type == "product":
-            verification_queries = [
-                f"{query} official specifications",
-                f"{query} official release date and price",
-                f"{query} official reviews",
-            ]
-            results = []
-            for v_query in verification_queries:
-                result = search_tool.invoke({"query": v_query})
-                results.append(f"--- Results for {v_query} ---\n{result}")
-            return "\n".join(results)
-        else:
-            return search_tool.invoke(
-                {"category": query, "timeframe": timeframe}
-            )
+        verification_queries = [
+            f"{query} official specifications",
+            f"{query} official release date and price",
+            f"{query} official reviews",
+        ]
+        results = []
+        for v_query in verification_queries:
+            result = search_tool.invoke({"query": v_query})
+            results.append(f"--- Results for {v_query} ---\n{result}")
+        return "\n".join(results)
 
     async def _save_information(
         self,
@@ -248,34 +189,12 @@ class Agent:
                 ai_msg.content
             )
             data = json.loads(cleaned_json)
-
+            logger.info(data)
             if self.information_type == "product":
-                return save_product_info(
+                return await save_product_info(
                     product_data=ai_msg.content, raw_data=str(messages)
                 )
-            else:
-                return save_trending_products(
-                    category=query,
-                    timeframe=timeframe,
-                    trending_data=data,
-                    raw_data=str(messages),
-                )
+
         except Exception as e:
             logger.error(f"Error processing information: {e}")
             return None
-
-    @staticmethod
-    def get_trending_categories() -> List[str]:
-        """Get list of supported trending categories"""
-        return [
-            "Smartphones",
-            "Laptops",
-            "Gaming Consoles",
-            "Headphones",
-            "Smartwatches",
-            "Tablets",
-            "Gaming Accessories",
-            "Smart Home Devices",
-            "Cameras",
-            "TVs",
-        ]

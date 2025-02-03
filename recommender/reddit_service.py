@@ -22,12 +22,18 @@ class RedditService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_reddit_client(self):
+    async def get_reddit_client(
+        self,
+        user_agent: str | None = None,
+        refresh_token: str | None = None,
+        redirect_uri: str | None = None,
+    ):
         return asyncpraw.Reddit(
             client_id=CLIENT_ID,
             client_secret=CLIENT_SECRET,
-            user_agent=USER_AGENT,
-            redirect_uri=REDIRECT_URI,
+            user_agent=user_agent or USER_AGENT,
+            redirect_uri=redirect_uri or REDIRECT_URI,
+            refresh_token=refresh_token,
         )
 
     async def get_auth_url(self, user: User) -> Tuple[str, str]:
@@ -61,7 +67,12 @@ class RedditService:
             user.reddit_state = (
                 None  # clear the state after successful authentication
             )
-
+            # get authenticated user and reddit username
+            reddit_client = await self.get_reddit_client(
+                refresh_token=refresh_token
+            )
+            reddit_user = await reddit_client.user.me()
+            user.reddit_username = reddit_user.name
             await self.db.commit()
             return True
 
@@ -72,21 +83,19 @@ class RedditService:
 
     async def get_authorized_client(self, user: User):
         """Get Reddit client with user's refresh token"""
-        reddit = await self.get_reddit_client()
+        reddit_client = await self.get_reddit_client()
         if not user.has_reddit_refresh_token:
             logger.warning(
                 f"User {user.username} does not have a refresh token"
             )
-            return reddit
+            return reddit_client
 
         try:
-            reddit = asyncpraw.Reddit(
-                client_id=CLIENT_ID,
-                client_secret=CLIENT_SECRET,
-                user_agent=USER_AGENT,
+            reddit_client = await self.get_reddit_client(
                 refresh_token=user.reddit_refresh_token,
             )
-            return reddit
+            return reddit_client
+
         except Exception as e:
             logger.error(f"Failed to authorize user {user.username}: {str(e)}")
             return await self.get_reddit_client()

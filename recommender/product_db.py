@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from sqlalchemy import func, select
 
 from recommender.database import get_db
-from recommender.models import ProductModel, TrendingProducts
+from recommender.models import ProductModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -115,27 +115,6 @@ async def save_product_info(
             await db.rollback()
             logger.error(f"Error saving product info: {e}", exc_info=True)
             return None
-
-
-async def save_trending_products(
-    category: str, timeframe: str, trending_data: dict, raw_data: str
-) -> bool:
-    """Save trending products data to database"""
-    async for db in get_db():
-        try:
-            trending = TrendingProducts(
-                category=category,
-                timeframe=timeframe,
-                trending_data=trending_data,
-                raw_data=raw_data,
-            )
-            db.add(trending)
-            await db.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Error saving trending products: {e}")
-            await db.rollback()
-            return False
 
 
 async def get_product_from_db(product_name: str) -> Optional[Dict]:

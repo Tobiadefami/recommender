@@ -205,6 +205,7 @@ export default function Home() {
       isLoadingHistory={isLoadingHistory}
       hasRedditConnection={hasRedditConnection}
       showRedditBanner={showRedditBanner}
+      onDirectSearch={fetchResults}
     />
   );
 }
