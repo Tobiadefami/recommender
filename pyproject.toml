@@ -10,7 +10,7 @@ python = "^3.10"
 aiohttp = "^3.10.0"
 asyncio = "^3.4.3"
 fastapi = "^0.111.1"
-sqlalchemy = { extras = ["postgresql"], version = "^1.4.0" }
+sqlalchemy = { extras = ["asyncio"], version = "^2.0.36" }
 psycopg2-binary = "^2.9.1"
 youtube-transcript-api = "^0.6.2"
 google-api-python-client = "^2.145.0"
@@ -26,10 +26,13 @@ langchain-google-community = "^2.0.3"
 duckduckgo-search = "^6.3.7"
 exa-py = "^1.7.0"
 langchain-exa = "^0.2.1"
+asyncpg = "^0.30.0"
+ruff = "^0.9.1"
+langchain-google-vertexai = "^2.0.12"
 
 [tool.pyright]
 venvPath = "."
-venv = "/home/chief/.pyenv/versions/3.10/envs/recommender_dev"
+venv = "/home/chief/.pyenv/versions/3.11.11/envs/recommender_dev"
 
 [build-system]
 requires = ["poetry-core"]

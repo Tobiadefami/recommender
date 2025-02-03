@@ -1,47 +1,10 @@
-from enum import Enum
 from typing import Optional
 
 
-class MessageType(Enum):
-    PRODUCT_AGENT = "product_agent"
-    TRENDING_AGENT = "trending_agent"
-
-
-TRENDING_SYSTEM_MESSAGE = """You are a product research specialist focused on identifying trending products in specific categories.
-Your task is to:
-1. Find the top 5 trending products in the requested category
-2. Verify the information from multiple reliable sources
-3. Ensure the products are current and actually trending
-4. Provide detailed information about why each product is trending
-5. Include pricing, key features, and user sentiment
-
-Format your response as a JSON object with the following structure:
-{
-    "category": "string",
-    "timeframe": "string",
-    "trends": [
-        {
-            "rank": number,
-            "product_name": "string",
-            "brand": "string",
-            "price_range": "string",
-            "key_features": ["string"],
-            "trend_factors": ["string"],
-            "user_sentiment": "string",
-            "popularity_score": number,
-            "sources": ["string"]
-        }
-    ]
-}
-
-Ensure all information is current and verified."""
-
-
 def get_system_message(
-    message_type: MessageType, current_year: Optional[int] = None
+    current_year: Optional[int] = None,
 ) -> str:
-    if message_type == MessageType.PRODUCT_AGENT:
-        return f"""
+    return f"""
         You are a product specialist. Use the search tool to find factual product details and return them as valid JSON.
 
         The JSON response MUST:
@@ -67,8 +30,3 @@ def get_system_message(
         4. Price range should be specific (e.g., "$800-$1000")
         5. Mark any uncertain information as "unverified"
         """
-    elif message_type == MessageType.TRENDING_AGENT:
-        return TRENDING_SYSTEM_MESSAGE
-
-    else:
-        return "Invalid message type specified."

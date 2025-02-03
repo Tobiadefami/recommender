@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -24,8 +24,7 @@ COPY pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false
 
 # Install the dependencies, updating the lock file if necessary
-RUN poetry lock --no-update \
-    && poetry install --only main
+RUN poetry install --no-root
 
 # Copy the rest of the application code to the container
 COPY . /app/recommender

@@ -1,9 +1,10 @@
 // recommender/frontend/src/components/Autocomplete.tsx
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import api from "@/app/api";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useDebouncedCallback } from "use-debounce";
 
 interface AutocompleteProps {
   value: string;
@@ -11,6 +12,7 @@ interface AutocompleteProps {
   onSuggestionSelect: (suggestion: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   showSuggestions: boolean;
+  autoFocus?: boolean;
 }
 
 export default function Autocomplete({
@@ -19,6 +21,7 @@ export default function Autocomplete({
   onSuggestionSelect,
   onSubmit,
   showSuggestions: initialShowSuggestions,
+  autoFocus,
 }: AutocompleteProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
@@ -27,25 +30,24 @@ export default function Autocomplete({
   );
   const suggestionsRef = useRef<HTMLUListElement>(null);
 
-  const fetchSuggestions = useCallback(async () => {
-    if (value.length <= 1 || !internalShowSuggestions) return;
-    try {
-      const response = await api.get(
-        `/autocomplete?query=${encodeURIComponent(value)}`,
-      );
-      setSuggestions(response.data);
-    } catch (error) {
-      console.error("Failed to fetch suggestions:", error);
-    }
-  }, [value, internalShowSuggestions]);
+  const debouncedFetchSuggestions = useDebouncedCallback(
+    async (query: string) => {
+      if (query.length <= 1 || !internalShowSuggestions) return;
+      try {
+        const response = await api.get(
+          `/autocomplete?query=${encodeURIComponent(query)}`,
+        );
+        setSuggestions(response.data);
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error);
+      }
+    },
+    300, // 300ms delay
+  );
 
   useEffect(() => {
-    fetchSuggestions();
-  }, [fetchSuggestions]);
-
-  useEffect(() => {
-    setInternalShowSuggestions(initialShowSuggestions);
-  }, [initialShowSuggestions]);
+    debouncedFetchSuggestions(value);
+  }, [value, debouncedFetchSuggestions]);
 
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionSelect(suggestion);
@@ -124,14 +126,16 @@ export default function Autocomplete({
     <div className="relative">
       <div className="relative flex items-center">
         <Input
+          type="text"
+          value={value}
+          onChange={handleInputChange}
           className="bg-card/50 backdrop-blur-sm h-14 px-6 text-lg rounded-2xl shadow-sm
                      border-2 border-muted hover:border-muted-foreground/25 transition-colors
                      focus-visible:ring-2 focus-visible:ring-accent
                      focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           placeholder="What product are you looking for?"
-          value={value}
-          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          autoFocus={autoFocus}
         />
         <div className="absolute right-2 flex items-center gap-1">
           {value && (

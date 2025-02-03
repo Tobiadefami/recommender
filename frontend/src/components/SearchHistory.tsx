@@ -53,7 +53,10 @@ export default function SearchHistory({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onSearchSelect(item.query)}
+              onClick={(e) => {
+                e.preventDefault();
+                onSearchSelect(item.query);
+              }}
               className="ml-2"
             >
               <Search className="h-4 w-4" />

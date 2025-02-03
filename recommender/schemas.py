@@ -33,7 +33,7 @@ class ReviewBase(BaseModel):
     review_summary: str
     pros: List[str]
     cons: List[str]
-    sentiment: str
+    sentiment: Optional[str] = None
     is_product_of_interest: bool
     post_id: str
     detail_score: float

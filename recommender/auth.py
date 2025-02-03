@@ -87,17 +87,32 @@ async def create_user(
     db: AsyncSession, username: str, email: str, password: str
 ) -> User:
     "Create a new user"
-    async with db.begin():
-        hashed_password = get_password_hash(password)
-        user = User(
-            username=username,
-            email=email,
-            hashed_password=hashed_password,
-            is_active=True,
+
+    # check if user already exists in the db
+    existing_user = await get_user_by_username(db, username)
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400, detail="Username already registered"
         )
+
+    hashed_password = get_password_hash(password)
+    user = User(
+        username=username,
+        email=email,
+        hashed_password=hashed_password,
+        is_active=True,
+    )
+    try:
         db.add(user)
         await db.flush()
+        await db.commit()
         return user
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"failed to create user: {e}"
+        )
 
 
 async def update_user(db: AsyncSession, user: User) -> User:
