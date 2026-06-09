@@ -1,2 +1,4 @@
 /data
 /.zed
+/.venv
+__pycache__/

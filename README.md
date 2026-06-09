@@ -24,6 +24,8 @@ The system consists of three main components:
 ## Prerequisites
 
 - Docker and Docker Compose
+- uv (for local backend development)
+- Node.js and npm (for local frontend development)
 - GitHub account (for cloning the repository)
 - Reddit API credentials (for Reddit integration)
 - YouTube API key (for YouTube integration)
@@ -71,7 +73,7 @@ EXA_API_KEY=your_exa_api_key
 
 ```bash
 docker compose build
-docker-compose up -d
+docker compose up -d
 ```
 
 This will build and start all the necessary containers:
@@ -86,6 +88,23 @@ Once all containers are running, you can access the application at:
 
 ```
 http://localhost:8080
+```
+
+## Local Development
+
+Install the Python backend dependencies with uv:
+
+```bash
+uv sync
+uv run uvicorn recommender.app:app --reload
+```
+
+Install the frontend dependencies with npm:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ## Architecture
